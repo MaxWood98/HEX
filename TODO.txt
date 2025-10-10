@@ -1,0 +1,3 @@
+- add curvature based refinement boosting 
+- add fix for surface geometry edges at clipping planes -> collapse any surface edges in retained cells that are fully past the boundary
+- add remove only surface attached regions

@@ -1,0 +1,83 @@
+#hex unstructured mesh generator options file 
+#version 0.0.1
+
+#console display output
+console_display = yes
+
+#mesh path 
+meshpath = CFD_testing/grid
+
+#surface geometry filepath 
+# geompath = test_geometries/square.fv
+# geompath = test_geometries/NACA_0012.fv
+# geompath = test_geometries/RAE_2822.fv
+# geompath = test_geometries/wedge.fv
+# geompath = test_geometries/klunkerharder_0p100.fv
+# geompath = test_geometries/cavos_8x8_rand.fv
+# geompath = test_geometries/shopt_0p1.fv
+# geompath = test_geometries/8x8_cavos_opt.fv
+# geompath = test_geometries/turning_duct.fv
+# geompath = test_geometries/maxwood.fv
+# geompath = test_geometries/mandychan.fv
+# geompath = test_geometries/mattbeckett.fv
+# geompath = test_geometries/jamesfincham.fv
+geompath = test_geometries/hube.fv
+
+#mesh the geometry internally or externally 
+mesh_in_out = external
+
+#mesh property options
+mesh_edgelength_min = 1e-10
+mesh_cellvol_min = 1e-10
+mesh_ncell_max = 1000000
+mesh_farfield_r = 4.0
+
+#mesh structure options
+tree_type = triangle
+tree_mesh_relation = dual
+tree_nrefine = 10
+tree_nflood_coarse = 6
+tree_nflood_mid = 12
+tree_nflood_fine = 14
+
+#mesh postprocessing options 
+postprocess_allow_postprocess = yes
+postprocess_nsmooth_interlayer = 1
+postprocess_nsmooth_farfield = 2
+
+#mesh trimming options 
+postprocess_remove_farfield_adjacent = yes
+postprocess_remove_only_surface_adjacent = yes
+
+#gradient projection options 
+gradientpath = CFD_testing/gradient.dat
+# gradientpath = gradient.dat
+
+#refinement zoning:
+#  rzone point xmid ymid zmid radius level
+#  rzone line x1 y1 z1 x2 y2 z2 radius level
+#  rzone quad xmin ymin zmin xmax ymax zmax level
+#rzone point 0.0 0.0 0.0 0.1 12
+#rzone point 0.2 0.1 0.0 0.075 12
+#rzone point 0.05 0.2 0.0 0.3 11
+#rzone point 0.075 0.1 0.0 0.05 12
+#rzone point 1.0 0.0 0.0 0.01 13
+#rzone point 1.0 0.0 0.0 0.0025 16
+#rzone line 0.8 0.1 0.0 1.0 1.1 0.0 0.1 11
+#rzone quad 0.6 -0.2 0.0 1.1 0.2 0.0 12
+#rzone quad 0.4 -0.4 0.0 1.3 0.4 0.0 11
+
+#clip planes: 
+#  cplane x1 y1 z1 x2 y2 z2
+#cplane -1.0 10.5 0.0 1.0 10.5 0.0
+#cplane 0.5 -1.0 0.0 0.5 1.0 0.0
+
+#boundary condition zoning:
+#  bczone xmin ymin zmin xmax ymax zmax boundary_condition_tag
+#bczone -1 0.5 0.0 1.0 3.5 0.0 -3
+#bczone 7.5 10.0 0.0 10.5 11.0 0.0 -4
+
+#boundary removal tags
+# bcremove tag
+#bcremove -2 
+#bcremove -3 
