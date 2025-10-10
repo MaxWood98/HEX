@@ -1,7 +1,7 @@
 !hex mesh generator 2d main program
 !max wood
-!version : 0.0.8
-!updated : 22-06-25
+!version : 0.0.9
+!updated : 10-10-25
 
 !module 
 module hex2d
@@ -41,9 +41,12 @@ call geometry%extend(options%ncell_max)
 if (options%cdisplay) then 
     write(*,'(A)') '--> building geometry kdtree'
 end if 
-call kdtree%build_tree(geometry,10_in64,4_in64,options%cdisplay)
+call kdtree%build_tree(geometry,20_in64,4_in64,options%cdisplay)
 
-!build refined tritree
+!get the tree offset to centre the tree on the geometry centroid
+options%tree_offset = geometry%get_centroid()
+
+!build refined tree
 if (options%cdisplay) then 
     write(*,'(A)') '--> refining mesh tree of type: '//options%mesh_treetype
 end if 

@@ -96,16 +96,20 @@ implicit none
 logical :: in_line
 real(dp) :: v1(2),v2(2),vp(2)
 
-!variables - local
-real(dp) :: f
-
-!check fraction
-f = fraction_along_line(v1,v2,vp)
-if ((f .GE. 0.0d0) .AND. (f .LE. 1.0d0)) then 
+!evaluate
+if (dot_product(vp-v1,vp-v2) <= 0.0d0) then
     in_line = .true.
 else
     in_line = .false.
 end if 
+
+!check fraction
+! f = fraction_along_line(v1,v2,vp)
+! if ((f .GE. 0.0d0) .AND. (f .LE. 1.0d0)) then 
+!     in_line = .true.
+! else
+!     in_line = .false.
+! end if 
 return 
 end function is_in_line_segment
 

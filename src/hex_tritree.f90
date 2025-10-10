@@ -1,7 +1,7 @@
 !hex tritree module
 !max wood
-!version : 0.0.1
-!updated : 09-02-25
+!version : 0.0.2
+!updated : 10-10-25
 
 !module 
 module hex_tritree
@@ -893,9 +893,9 @@ allocate(tri_tree%vertices(2*options%ncell_max,3))
 allocate(tri_tree%vertex_tag(2*options%ncell_max))
 
 !build initial domain
-tri_tree%vertices(1,:) = (/-options%farfield_r,-options%farfield_r,0.0d0/)
-tri_tree%vertices(2,:) = (/0.0d0,options%farfield_r,0.0d0/)
-tri_tree%vertices(3,:) = (/options%farfield_r,-options%farfield_r,0.0d0/)
+tri_tree%vertices(1,:) = (/-options%farfield_r,-options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(2,:) = (/0.0d0,options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(3,:) = (/options%farfield_r,-options%farfield_r,0.0d0/) + options%tree_offset
 tri_tree%node(1)%index = 1
 tri_tree%node(1)%adjacent1 => null()
 tri_tree%node(1)%adjacent2 => null()
@@ -924,10 +924,10 @@ allocate(tri_tree%vertices(2*options%ncell_max,3))
 allocate(tri_tree%vertex_tag(2*options%ncell_max))
 
 !build initial domain
-tri_tree%vertices(1,:) = (/-options%farfield_r,-options%farfield_r,0.0d0/)
-tri_tree%vertices(2,:) = (/-options%farfield_r,options%farfield_r,0.0d0/)
-tri_tree%vertices(3,:) = (/options%farfield_r,options%farfield_r,0.0d0/)
-tri_tree%vertices(4,:) = (/options%farfield_r,-options%farfield_r,0.0d0/)
+tri_tree%vertices(1,:) = (/-options%farfield_r,-options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(2,:) = (/-options%farfield_r,options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(3,:) = (/options%farfield_r,options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(4,:) = (/options%farfield_r,-options%farfield_r,0.0d0/) + options%tree_offset
 tri_tree%vertices(5,:) = (/0.0d0,0.0d0,0.0d0/)
 tri_tree%node(1)%index = 1
 tri_tree%node(1)%adjacent1 => tri_tree%node(2)
@@ -977,13 +977,13 @@ allocate(tri_tree%vertices(2*options%ncell_max,3))
 allocate(tri_tree%vertex_tag(2*options%ncell_max))
 
 !build initial domain
-tri_tree%vertices(1,:) = (/-options%farfield_r,0.0d0,0.0d0/)
-tri_tree%vertices(2,:) = (/-0.5d0*options%farfield_r,(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/)
-tri_tree%vertices(3,:) = (/0.5d0*options%farfield_r,(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/)
-tri_tree%vertices(4,:) = (/options%farfield_r,0.0d0,0.0d0/)
-tri_tree%vertices(5,:) = (/0.5d0*options%farfield_r,-(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/)
-tri_tree%vertices(6,:) = (/-0.5d0*options%farfield_r,-(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/)
-tri_tree%vertices(7,:) = (/0.0d0,0.0d0,0.0d0/)
+tri_tree%vertices(1,:) = (/-options%farfield_r,0.0d0,0.0d0/) + options%tree_offset
+tri_tree%vertices(2,:) = (/-0.5d0*options%farfield_r,(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(3,:) = (/0.5d0*options%farfield_r,(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(4,:) = (/options%farfield_r,0.0d0,0.0d0/) + options%tree_offset
+tri_tree%vertices(5,:) = (/0.5d0*options%farfield_r,-(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(6,:) = (/-0.5d0*options%farfield_r,-(sqrt(3.0)/2.0)*options%farfield_r,0.0d0/) + options%tree_offset
+tri_tree%vertices(7,:) = (/0.0d0,0.0d0,0.0d0/) + options%tree_offset
 tri_tree%node(1)%index = 1
 tri_tree%node(1)%adjacent1 => tri_tree%node(2)
 tri_tree%node(1)%adjacent2 => tri_tree%node(6)

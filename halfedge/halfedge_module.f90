@@ -58,6 +58,7 @@ type face
         procedure :: get_area => get_area_f
         procedure :: get_edges => get_edges_f
         procedure :: get_number_of_edges => get_number_of_edges_f
+        procedure :: get_centroid => get_centroid_f
 end type face
 
 !halfedge type 
@@ -70,6 +71,7 @@ type halfedge
         procedure :: build_from_fv
         procedure :: set_indecies
         procedure :: extend => extend_halfedge
+        procedure :: get_centroid
 end type halfedge 
 
 
@@ -83,7 +85,7 @@ contains
 subroutine build_from_fv(self,mesh) 
 implicit none
 
-!variables - import
+!variables - inout
 class(halfedge), target :: self
 type(facevertex) :: mesh
 
@@ -254,7 +256,7 @@ end subroutine build_from_fv
 subroutine build_from_fv_file(self,filename) 
 implicit none
 
-!variables - import
+!variables - inout
 class(halfedge), target :: self
 character(*), intent(in) :: filename
 
@@ -435,7 +437,7 @@ end subroutine build_from_fv_file
 subroutine set_indecies(self) 
 implicit none 
 
-!variables - import
+!variables - inout
 class(halfedge) :: self 
 
 !variables - local
@@ -463,7 +465,7 @@ end subroutine set_indecies
 subroutine extend_halfedge(self,size_set)
 implicit none 
 
-!variables - import
+!variables - inout
 integer(in64) :: size_set
 class(halfedge), target :: self
 
@@ -592,6 +594,31 @@ return
 end subroutine extend_halfedge
 
 
+!get centroid =========================
+function get_centroid(self) result(centroid)
+implicit none 
+
+!variables - inout
+class(halfedge), target :: self
+real(dp) :: centroid(3)
+
+!variables - local
+integer(in64) :: ii 
+real(dp) :: farea,area
+
+!evaluate the centroid 
+area = 0.0d0 
+centroid(:) = 0.0d0 
+do ii=1,self%nface
+    farea = self%face(ii)%get_area()
+    area = area + farea
+    centroid = centroid + self%face(ii)%get_centroid()*farea
+end do 
+centroid = centroid/area
+return 
+end function get_centroid
+
+
 !general methods ==============
 !=======================================================
 !vertex methods ===============
@@ -601,7 +628,7 @@ end subroutine extend_halfedge
 subroutine get_connected_edges_v(self,edges)
 implicit none 
 
-!variables - import
+!variables - inout
 class(vertex), intent(in) :: self
 type(edge), dimension(:), allocatable :: edges
 
@@ -631,7 +658,7 @@ end subroutine get_connected_edges_v
 function get_valence_v(self) result(valence)
 implicit none 
 
-!variables - import
+!variables - inout
 class(vertex), intent(in) :: self
 integer(in64) :: valence
 
@@ -664,7 +691,7 @@ end function get_valence_v
 subroutine split_e(self,mesh,vn,nvidx,neidx) 
 implicit none  
 
-!variables - import
+!variables - inout
 class(edge), target :: self 
 class(halfedge), target :: mesh
 integer(in64) :: nvidx
@@ -737,12 +764,12 @@ end subroutine split_e
 function get_area_f(self) result(area)
 implicit none 
 
-!variables - import
+!variables - inout
 class(face), intent(in) :: self
 real(dp) :: area
 
 !evaluate area
-area = norm2(self%get_normal(unit_length = .False.))
+area = norm2(self%get_normal(unit_length=.False.))
 return 
 end function get_area_f
 
@@ -751,7 +778,7 @@ end function get_area_f
 function get_normal_f(self,unit_length) result(normal)
 implicit none 
 
-!variables - import
+!variables - inout
 class(face), intent(in) :: self
 real(dp) :: normal(size(self%edge%origin%coordinate,1))
 logical, optional :: unit_length
@@ -789,7 +816,7 @@ end function get_normal_f
 subroutine get_edges_f(self,edges) 
 implicit none 
 
-!variables - import
+!variables - inout
 class(face), intent(in) :: self
 type(edge), allocatable, dimension(:) :: edges
 
@@ -820,7 +847,7 @@ end subroutine get_edges_f
 function get_number_of_edges_f(self) result(nedge)
 implicit none 
 
-!variables - import 
+!variables - inout 
 integer(in64) :: nedge
 class(face), intent(in) :: self
 
@@ -841,6 +868,38 @@ end do
 return 
 end function get_number_of_edges_f
 
+
+!get centroid =========================
+function get_centroid_f(self) result(centroid)
+implicit none 
+
+!variables - inout 
+real(dp) :: centroid(3)
+class(face), intent(in) :: self
+
+!variables local
+integer(in64) :: ii 
+real(dp) :: elen,perimiter 
+real(dp) :: emid(3)
+type(edge), pointer :: edgec 
+
+!evaluate the centroid
+perimiter = 0.0d0 
+centroid(:) = 0.0d0 
+edgec => self%edge
+do ii=1,face_max_edges_he
+    elen = norm2(edgec%opposite%origin%coordinate - edgec%origin%coordinate)
+    emid = 0.5d0*(edgec%opposite%origin%coordinate + edgec%origin%coordinate)
+    centroid = centroid + emid*elen
+    perimiter = perimiter + elen
+    edgec => edgec%next
+    if (associated(edgec,self%edge)) then
+        exit  
+    end if 
+end do 
+centroid = centroid/perimiter
+return 
+end function get_centroid_f
 
 !face methods =================
 

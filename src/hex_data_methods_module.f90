@@ -25,6 +25,7 @@ type hex_options
     integer(in64) :: ncell_max,nsmooth_interlayer,nsmooth_farfield,nrefzone,nclipplane,nbczone,nbcremzone
     integer(in64), dimension(:), allocatable :: boundarycondition_remove_zones
     real(dp) :: farfield_r,edgelength_min,cellvol_min,vtx_proximity_tolerance
+    real(dp) :: tree_offset(3)
     type(hex_refzone), dimension(:), allocatable :: refinement_zones
     type(hex_clipplane), dimension(:), allocatable :: clip_planes
     type(hex_bczone), dimension(:), allocatable :: boundarycondition_zones

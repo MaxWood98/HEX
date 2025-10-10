@@ -178,6 +178,7 @@ call set_real_opt(options%edgelength_min,11,'mesh_edgelength_min')
 call set_real_opt(options%cellvol_min,11,'mesh_cellvol_min')
 call set_int_opt(options%ncell_max,11,'mesh_ncell_max')
 call set_real_opt(options%farfield_r,11,'mesh_farfield_r')
+options%tree_offset(:) = (/0.0d0,0.0d0,0.0d0/) 
 
 !set postprocessing options 
 call set_log_opt(options%allow_postprocess,11,'postprocess_allow_postprocess')
