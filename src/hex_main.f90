@@ -1,7 +1,7 @@
 !hex mesh generator main program
 !max wood
-!version : 0.0.2
-!updated : 20-02-25
+!version : 0.0.24
+!updated : 10-10-25
 
 !TODO =====================
 ! add initial fv geometry normals calculation to set halfedge normals such that it can deal with nested geometry 
@@ -12,11 +12,13 @@ program hex
 use hex2d
 use hex_io
 use hex_gradient
+use hex_utilities
 implicit none 
 
 !variables 
-type(hex_options) :: options 
 type(halfedge) :: geometry
+type(facevertex) :: geometry_fv
+type(hex_options) :: options 
 type(hex_mesh), target :: mesh2d
 real(dp), dimension(:,:), allocatable :: surface_gradient
 
@@ -35,7 +37,7 @@ if (options%cdisplay) then
     write(*,'(A)')'+--------------------------------------------+'
     write(*,'(A)')'|                    hex                     |'
     write(*,'(A)')'|  2d/3d unstructured volume mesh generator  |'
-    write(*,'(A)')'|       Version 0.0.22 || 22/06/2025         |'
+    write(*,'(A)')'|       Version 0.0.24 || 10/10/2025         |'
     write(*,'(A)')'|                 Max Wood                   |'
     write(*,'(A)')'|           University of Bristol            |'
     write(*,'(A)')'|    Department of Aerospace Engineering     |'
@@ -61,7 +63,17 @@ end if
 if (options%cdisplay) then 
     write(*,'(A)') '--> importing geometry: '//trim(options%geompath)//trim(options%geomname)
 end if 
-call geometry%build_from_fv(trim(options%geompath)//trim(options%geomname))
+call geometry_fv%read_fv_file(trim(options%geompath)//trim(options%geomname))
+if (geometry_fv%nedge == 0) then !build edges if not supplied
+    call geometry_fv%build_edges_from_faces()
+end if 
+if (geometry_fv%ndim == 2) then !initialise pseudo-faces if mesh is 2d
+    call geometry_fv%build_edge_loop_faces()
+end if 
+call geometry%build_from_fv(geometry_fv)
+if (geometry_fv%ndim == 2) then !if 2d then set the edge normals from the fv geometry 
+    call set_2d_halfedge_normals_from_facevertex(geometry,geometry_fv)
+end if 
 if (options%cdisplay) then 
     write(*,'(A,I0,A)') '    {geometry is ',geometry%ndim,' dimensional}'
     write(*,'(A,I0,A)') '    {imported = ',geometry%nvertex,' vertices}'

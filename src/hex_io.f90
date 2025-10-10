@@ -367,6 +367,7 @@ character(*) :: filename
 type(hex_mesh), target :: mesh
 
 !variables - local 
+logical :: invalid_cell
 integer(in64) :: ii,jj
 integer(in64) :: etgt
 integer(in64) :: loop(mesh%nedge)
@@ -378,15 +379,16 @@ integer(in64) :: loop(mesh%nedge)
 ! call mesh%get_cell_edges()
 
 !write mesh to file  
+invalid_cell = .false.
 open(11,file=filename) !mesh file
 write(11,'(A,I0)') 'ncell = ',mesh%ncell 
 do ii=1,mesh%ncell
 
-    ! print *, 'cell -> ', mesh%cell(ii)%index,' || ',mesh%cell(ii)%nedge
-    
     !get ordered loop of edges for this cell 
     loop(1:mesh%cell(ii)%nedge) = mesh%cell(ii)%get_edge_loop(mesh)
 
+    !debug 
+    ! print *, 'cell -> ', mesh%cell(ii)%index,' || ',mesh%cell(ii)%nedge
     ! print *, mesh%cell(ii)%nedge ,' -> ',loop(1:mesh%cell(ii)%nedge)
 
     !write index and number of edges in this cell 
@@ -395,18 +397,31 @@ do ii=1,mesh%ncell
     !write cell edges (v1 v2 adjacent_cell)
     do jj=1,mesh%cell(ii)%nedge 
         etgt = loop(jj)
+        if (etgt == 0) then 
+            write(*,'(A,I0,A)') '    ** zero index in vertex loop of cell ',ii,', this cell is likely bisected'
+            invalid_cell = .true.
+            exit
+        end if 
         if (mesh%edge(etgt)%cell1 == ii) then 
             write(11,'(I0,A,I0,A,I0)') mesh%edge(etgt)%vertex1%index,' ',mesh%edge(etgt)%vertex2%index,' ',mesh%edge(etgt)%cell2
         else
             write(11,'(I0,A,I0,A,I0)') mesh%edge(etgt)%vertex2%index,' ',mesh%edge(etgt)%vertex1%index,' ',mesh%edge(etgt)%cell1
         end if 
     end do 
+    if (invalid_cell) then 
+        exit 
+    end if 
 end do 
-write(11,'(A,I0)') 'nvertex = ',mesh%nvertex 
-do ii=1,mesh%nvertex 
-    write(11,'(E17.10,A,E17.10)') mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
-end do 
+if (.NOT. invalid_cell) then 
+    write(11,'(A,I0)') 'nvertex = ',mesh%nvertex 
+    do ii=1,mesh%nvertex 
+        write(11,'(E17.10,A,E17.10)') mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
+    end do 
+end if 
 close(11)
+if (invalid_cell) then 
+    write(*,'(A)') '    ** invalid mesh not written to file'
+end if
 return 
 end subroutine write_hex_cell_mesh_2d
 

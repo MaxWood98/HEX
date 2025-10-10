@@ -17,6 +17,7 @@ OBJS = $(addprefix $(OBJDIR), \
 		geometry_kdtree_module.o\
 		hex_data_methods_module.o\
 		hex_geometry.o\
+		hex_utilities.o\
 		hex_postprocess.o\
 		hex_tritree.o\
 		hex_io.o\

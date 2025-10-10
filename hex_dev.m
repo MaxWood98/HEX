@@ -15,7 +15,8 @@ addpath(genpath('matlab_utilities'));
 % filename = 'test_geometries/wedge.fv';
 % filename = 'test_geometries/NACA_0012.fv';
 % filename = 'test_geometries/RAE_2822.fv';
-% [geom] = import_fv_mesh(filename);
+filename = 'test_geometries\cavos_3x3.fv';
+[geom] = import_fv_mesh(filename);
 % [geom] = build_full_faces(geom);
 
 %load mesh 
@@ -35,7 +36,24 @@ hold on
 
 %plot mesh 
 patch('Faces',mesh.edge,'Vertices',mesh.vertex,'edgecolor','k')
-% patch('Faces',geom.faces_full,'Vertices',geom.vertices,'edgecolor','r','marker','none','edgealpha',0.25)
+
+
+% %plot geometry
+% patch('Faces',geom.edges,'Vertices',geom.vertices,'edgecolor','r','marker','none','edgealpha',0.25)
+% normals = zeros(length(geom.edges),2);
+% midpoints = zeros(length(geom.edges),2);
+% for ii=1:length(geom.edges)
+%     v1 = geom.edges(ii,1);
+%     v2 = geom.edges(ii,2);
+%     dx = geom.vertices(v2,1) - geom.vertices(v1,1);
+%     dy = geom.vertices(v2,2) - geom.vertices(v1,2);
+%     normals(ii,1) = dy;
+%     normals(ii,2) = -dx;
+%     midpoints(ii,1) = 0.5*(geom.vertices(v2,1) + geom.vertices(v1,1));
+%     midpoints(ii,2) = 0.5*(geom.vertices(v2,2) + geom.vertices(v1,2));
+% end
+% quiver(midpoints(:,1),midpoints(:,2),normals(:,1),normals(:,2))
+
 
 
 % plot(mesh.vertex(:,1),mesh.vertex(:,2),'k.')
@@ -57,21 +75,21 @@ end
 patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','b','linewidth',0.1,'marker','.','markeredgecolor','b')
 
 
-farfield_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
-        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
-
-farfield_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
-        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
+% farfield_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
+%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
+% 
+% farfield_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
+%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
 
 
 
@@ -112,7 +130,7 @@ patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',
 %format
 hold off
 axis equal
-axis tight
+% axis tight
 box on 
 xlabel('x')
 ylabel('y')
@@ -123,7 +141,7 @@ ylabel('y')
 
 % axis([0.9768    1.0221   -0.0299    0.0089])
 
-% %plot edge normals 
+%plot edge normals 
 % evins = 0;
 % enface = zeros(mesh.nedge,2);
 % envtx = zeros(2*mesh.nedge,2);

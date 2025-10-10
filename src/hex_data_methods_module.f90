@@ -115,7 +115,6 @@ end type hex_mesh
 !methods ==================================================
 contains 
 
-
 !get the edges on this vertex that are surface edges =========================
 function get_surface_edges_vertex(self,mesh) result(surface_edges)
 implicit none 

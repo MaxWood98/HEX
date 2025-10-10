@@ -79,9 +79,179 @@ contains
 
 !general methods ==============
 
+!build from face vertex structure ========================= ***** check coordinate dimensions 2D/3D??????????????
+subroutine build_from_fv(self,mesh) 
+implicit none
+
+!variables - import
+class(halfedge), target :: self
+type(facevertex) :: mesh
+
+!variables - local
+integer(in64) :: ii,ee,nhalfedge
+integer(in64) :: ev1,ev2,eidx,efidx,eidx_p,he1,he2
+integer(in64), dimension(:,:), allocatable :: edge_idx,edge_idx_f
+
+!allocate halfedge structure 
+allocate(self%vertex(mesh%nvertex))
+self%nvertex = mesh%nvertex
+allocate(self%edge(2*mesh%nedge))
+self%nedge = 2*mesh%nedge
+allocate(self%face(mesh%nface))
+self%nface = mesh%nface
+self%ndim = mesh%ndim
+
+!initialise vertices 
+do ii=1,self%nvertex
+    allocate(self%vertex(ii)%coordinate(3)) !force to 3D
+    self%vertex(ii)%coordinate = mesh%vertices(ii,:)
+end do 
+
+!initialise edges 
+do ii=1,self%nedge
+    allocate(self%edge(ii)%direction(3)) !force to 3D
+    self%edge(ii)%direction = 0.0d0 
+    allocate(self%edge(ii)%normal(3)) !force to 3D
+    self%edge(ii)%normal = 0.0d0
+end do 
+
+!set indecies 
+call self%set_indecies()
+
+!build connectivity
+call mesh%get_connectivity()
+
+!construct half edges 
+nhalfedge = 0 
+allocate(edge_idx(mesh%nedge,2))
+allocate(edge_idx_f(mesh%nedge,2))
+edge_idx(:,:) = 0
+edge_idx_f(:,:) = 0 
+do ii=1,mesh%nface !build edges
+
+    !add half edges if required in this face
+    do ee=1,mesh%faces(ii)%nvertex
+        ev1 = mesh%faces(ii)%vertices(ee)
+        ev2 = mesh%faces(ii)%vertices(mod(ee,mesh%faces(ii)%nvertex) + 1)
+        eidx = mesh%faces(ii)%edges(ee)
+        nhalfedge = nhalfedge + 1
+        self%edge(nhalfedge)%origin => self%vertex(ev1)
+        self%edge(nhalfedge)%origin0 => self%vertex(ev1)
+        self%edge(nhalfedge)%adjacent => self%face(ii)
+        self%edge(nhalfedge)%tag = eidx !tag with fv mesh index
+        if (edge_idx(eidx,1) == 0) then 
+            edge_idx(eidx,1) = nhalfedge
+            edge_idx_f(eidx,1) = ii
+        else
+            edge_idx(eidx,2) = nhalfedge
+            edge_idx_f(eidx,2) = ii
+        end if 
+        if (ee == 1) then !store halfedge for this face
+            efidx = nhalfedge
+        end if 
+    end do 
+
+    !assign edge to this face
+    self%face(ii)%edge => self%edge(efidx)
+
+    !link next and previous in this face
+    do ee=1,mesh%faces(ii)%nvertex
+        ev1 = ee
+        ev2 = mod(ee,mesh%faces(ii)%nvertex) + 1
+        if (edge_idx_f(mesh%faces(ii)%edges(ev1),1) == ii) then 
+            he1 = edge_idx(mesh%faces(ii)%edges(ev1),1)
+        else
+            he1 = edge_idx(mesh%faces(ii)%edges(ev1),2)
+        end if
+        if (edge_idx_f(mesh%faces(ii)%edges(ev2),1) == ii) then 
+            he2 = edge_idx(mesh%faces(ii)%edges(ev2),1)
+        else
+            he2 = edge_idx(mesh%faces(ii)%edges(ev2),2)
+        end if
+        self%edge(he1)%next => self%edge(he2)
+        self%edge(he2)%previous => self%edge(he1)
+    end do 
+end do 
+do ii=1,mesh%nedge !build halfedges on any shell edges 
+    if (edge_idx(ii,2) == 0) then 
+
+        !current half edge
+        he1 = edge_idx(ii,1)
+
+        !select the correct origin for the new halfedge
+        if (self%edge(he1)%origin%index == mesh%edges(ii,1)) then 
+            ev1 = mesh%edges(ii,2)
+        else
+            ev1 = mesh%edges(ii,1)
+        end if 
+
+        !build the new halfedge 
+        nhalfedge = nhalfedge + 1
+        self%edge(nhalfedge)%origin => self%vertex(ev1)
+        self%edge(nhalfedge)%origin0 => self%vertex(ev1)
+        self%edge(nhalfedge)%adjacent => null()
+        self%edge(nhalfedge)%tag = ii !tag with fv mesh index
+        
+        !store in index array 
+        edge_idx(ii,2) = -nhalfedge
+    end if 
+end do 
+do ii=1,mesh%nedge !link previous-next for any halfedges on shell edges 
+    if (edge_idx(ii,2) < 0) then 
+
+        !origin index
+        ev1 = self%edge(abs(edge_idx(ii,2)))%origin%index
+
+        !find the other connected shell edge
+        eidx = 0 
+        do ee=1,mesh%valence(ev1)
+            if (mesh%v2e(ev1,ee) .NE. ii) then
+                if ((mesh%e2f(mesh%v2e(ev1,ee),1) == 0) .OR. (mesh%e2f(mesh%v2e(ev1,ee),2) == 0)) then
+                    eidx = mesh%v2e(ev1,ee)
+                    exit
+                end if 
+            end if 
+        end do 
+        if (eidx == 0) then 
+            print *, '** unlinked shell edge : ', abs(edge_idx(ii,2))
+        end if 
+
+        !find the shell edge half edge on eidx
+        if (edge_idx(eidx,1) < 0) then 
+            eidx_p = abs(edge_idx(eidx,1))
+        else
+            eidx_p = abs(edge_idx(eidx,2))
+        end if 
+
+        !link the edges
+        self%edge(abs(edge_idx(ii,2)))%previous => self%edge(eidx_p)
+        self%edge(eidx_p)%next => self%edge(abs(edge_idx(ii,2)))
+    end if 
+end do 
+do ii=1,mesh%nedge !link opposites
+    he1 = abs(edge_idx(ii,1))
+    he2 = abs(edge_idx(ii,2))
+    self%edge(he1)%opposite => self%edge(he2)
+    self%edge(he2)%opposite => self%edge(he1)
+end do 
+
+!assign edge to each vertex
+do ii=1,self%nedge
+    ev1 = self%edge(ii)%origin%index 
+    self%vertex(ev1)%edge => self%edge(ii)
+end do 
+
+!set the direction of each edge 
+do ii=1,self%nedge
+    self%edge(ii)%direction = self%edge(ii)%opposite%origin%coordinate - self%edge(ii)%origin%coordinate
+    self%edge(ii)%direction = self%edge(ii)%direction/norm2(self%edge(ii)%direction)
+end do 
+return 
+end subroutine build_from_fv
+
 
 !build from face vertex .fv file ========================= ***** check coordinate dimensions 2D/3D??????????????
-subroutine build_from_fv(self,filename) 
+subroutine build_from_fv_file(self,filename) 
 implicit none
 
 !variables - import
@@ -149,6 +319,7 @@ do ii=1,mesh%nface !build edges
         self%edge(nhalfedge)%origin => self%vertex(ev1)
         self%edge(nhalfedge)%origin0 => self%vertex(ev1)
         self%edge(nhalfedge)%adjacent => self%face(ii)
+        self%edge(nhalfedge)%tag = eidx !tag with fv mesh index
         if (edge_idx(eidx,1) == 0) then 
             edge_idx(eidx,1) = nhalfedge
             edge_idx_f(eidx,1) = ii
@@ -200,6 +371,7 @@ do ii=1,mesh%nedge !build halfedges on any shell edges
         self%edge(nhalfedge)%origin => self%vertex(ev1)
         self%edge(nhalfedge)%origin0 => self%vertex(ev1)
         self%edge(nhalfedge)%adjacent => null()
+        self%edge(nhalfedge)%tag = ii !tag with fv mesh index
         
         !store in index array 
         edge_idx(ii,2) = -nhalfedge
@@ -256,7 +428,7 @@ do ii=1,self%nedge
     self%edge(ii)%direction = self%edge(ii)%direction/norm2(self%edge(ii)%direction)
 end do 
 return 
-end subroutine build_from_fv
+end subroutine build_from_fv_file
 
 
 !set indecies =========================

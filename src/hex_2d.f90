@@ -75,7 +75,7 @@ end if
 call mesh_full%extend(options%ncell_max)
 
 !perturb mesh_full vertices that lie on the geometry 
-call perturb_ongeom_vertices(mesh_full,kdtree,geometry,options%vtx_proximity_tolerance,nperturb)
+call perturb_ongeom_vertices(mesh_full,kdtree,options%vtx_proximity_tolerance,nperturb)
 if (options%cdisplay) then 
     write(*,'(A,I0,A)') '    {perturbed ',nperturb,' geometry co-incident vertices}'
 end if
@@ -306,9 +306,6 @@ type(edge), dimension(:), allocatable :: edge_check
 
 !set zero edge length tollerance 
 zelen_tol = options%edgelength_min
-
-!assign oriented normal vectors to current geometry edges 
-call get_geometry_normals(geometry)
 
 !set mesh vertex tags to zero (a non-zero tag indicates the vertex is shared with one on the clipped geometry)
 do ii=1,size(mesh_full%vertex,dim=1)
@@ -544,8 +541,8 @@ do ii=1,geometry%nvertex
     geometry_ve0ends(ii,2) = edgea%opposite%origin0%index
 end do 
 
-!build oriented geometry mesh (+ve area 'faces' -> each face here corresponds to an object)
-call build_oriented_geometry(geometry)
+!flag all the 'external' halfedges in the geometry, those with the correctly oriented normal vector to be part of the mesh 
+call flag_external_halfedges(geometry)
 
 !build mesh v2e
 call mesh_full%index_edges()
@@ -1334,7 +1331,7 @@ end subroutine flood_geometry_edge_cells
 
 
 !perturb on geometry mesh vertices =========================
-subroutine perturb_ongeom_vertices(mesh,kdtree,geometry,dv,nperturb)
+subroutine perturb_ongeom_vertices(mesh,kdtree,dv,nperturb)
 implicit none 
 
 !variables - import
@@ -1342,7 +1339,6 @@ integer(in64) :: nperturb
 real(dp) :: dv 
 type(hex_mesh), target :: mesh
 type(gkdtree), target :: kdtree
-type(halfedge), target :: geometry
 
 !variables - local 
 integer(in64) :: ii,jj,nn
@@ -1351,9 +1347,6 @@ real(dp) :: xmin,xmax,ymin,ymax,dmin,dx,dy,enorm
 real(dp) :: vidmin(3)
 type(edge) :: etgt,emin 
 type(node) :: tgt_nodes(kdtree%nnode)
-
-!assign the normal vector of all geometry edges 
-call get_geometry_normals(geometry)
 
 !check and perturb vertices 
 nperturb = 0
@@ -1411,8 +1404,8 @@ return
 end subroutine perturb_ongeom_vertices
 
 
-!get geometry normal vectors =========================
-subroutine get_geometry_normals(geometry)
+!build oriented geometry mesh =========================
+subroutine flag_external_halfedges(geometry)
 implicit none 
 
 !variables - import
@@ -1421,66 +1414,27 @@ type(halfedge), target :: geometry
 !variables - local 
 integer(in64) :: ii
 real(dp) :: dx,dy
-
-!assign the normal vector of all geometry edges (outwards pointing)
-call build_oriented_geometry(geometry)
-do ii=1,geometry%nedge
-    if (geometry%edge(ii)%flag) then 
-        dx = geometry%edge(ii)%origin%coordinate(1) - geometry%edge(ii)%opposite%origin%coordinate(1) 
-        dy = geometry%edge(ii)%opposite%origin%coordinate(2) - geometry%edge(ii)%origin%coordinate(2) 
-        geometry%edge(ii)%normal(1) = dy
-        geometry%edge(ii)%normal(2) = dx
-        geometry%edge(ii)%normal(3) = 0.0d0 
-        geometry%edge(ii)%normal = geometry%edge(ii)%normal/norm2(geometry%edge(ii)%normal)
-        geometry%edge(ii)%opposite%normal = geometry%edge(ii)%normal
-    end if 
-end do 
-return 
-end subroutine get_geometry_normals
-
-
-!build oriented geometry mesh =========================
-subroutine build_oriented_geometry(geometry)
-implicit none 
-
-!variables - import
-type(halfedge), target :: geometry
-
-!variables - local 
-integer(in64) :: ii,ff
-real(dp) :: farea
-type(edge), allocatable, dimension(:) :: edges
+real(dp) :: normal(3)
 
 !set geometry flags
 do ii=1,geometry%nedge
     geometry%edge(ii)%flag = .false.
 end do 
 
-!build oriented edge loop for each face
-do ff=1,geometry%nface
+!set flag on halfedges with normals that point in the correct direction to true 
+normal(:) = 0.0d0 
+do ii=1,geometry%nedge
+    dx = geometry%edge(ii)%opposite%origin%coordinate(1) - geometry%edge(ii)%origin%coordinate(1)
+    dy = geometry%edge(ii)%opposite%origin%coordinate(2) - geometry%edge(ii)%origin%coordinate(2)
+    normal(1) = dy 
+    normal(2) = -dx 
+    if (dot_product(normal,geometry%edge(ii)%normal) > 0.0) then 
 
-    !get edges of the face
-    call geometry%face(ff)%get_edges(edges)
-
-    !check the area of this face
-    farea = 0.0d0 
-    do ii=1,size(edges,dim=1)
-        farea = farea + asegment(edges(ii)%origin%coordinate,edges(ii)%opposite%origin%coordinate)
-    end do  
-
-    !tag edges according to orientation
-    if (farea .GT. 0.0d0) then 
-        do ii=1,size(edges,dim=1)
-            geometry%edge(edges(ii)%index)%flag = .true.
-        end do 
-    else
-        do ii=1,size(edges,dim=1)
-            geometry%edge(edges(ii)%opposite%index)%flag = .true.
-        end do 
+        geometry%edge(ii)%flag = .true.
     end if 
 end do 
 return 
-end subroutine build_oriented_geometry
+end subroutine flag_external_halfedges
 
 
 !order items =========================
