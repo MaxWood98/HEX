@@ -7,10 +7,11 @@ filename = 'grid_cell';
 
 %Load mesh
 fid = fopen(filename);
-meshi = textscan(fid,'%s %s %s');
+meshi = textscan(fid,'%s %s %s %s');
 mesh1 = meshi{1};
 mesh2 = meshi{2};
 mesh3 = meshi{3};
+mesh4 = meshi{4};
 fclose(fid);
 
 %read cells 
@@ -22,12 +23,13 @@ for ii=1:length(mesh1)
         for cc=1:ncell
             rowc = rowc + 1;
             cells{cc}.nedge = str2double(mesh2(rowc));
-            cells{cc}.edges = zeros(cells{cc}.nedge,3);
+            cells{cc}.edges = zeros(cells{cc}.nedge,4);
             for ee=1:cells{cc}.nedge
                 rowc = rowc + 1;
                 cells{cc}.edges(ee,1) = str2double(mesh1(rowc));
                 cells{cc}.edges(ee,2) = str2double(mesh2(rowc));
                 cells{cc}.edges(ee,3) = str2double(mesh3(rowc));
+                cells{cc}.edges(ee,4) = str2double(mesh4(rowc));
             end
         end 
         break

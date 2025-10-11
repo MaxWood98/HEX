@@ -36,10 +36,10 @@ mesh_farfield_r = 12.0
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 11
-tree_nflood_coarse = 6
-tree_nflood_mid = 14
-tree_nflood_fine = 18
+tree_nrefine = 10
+tree_nflood_coarse = 2
+tree_nflood_mid = 8
+tree_nflood_fine = 12
 
 #mesh postprocessing options 
 postprocess_allow_postprocess = yes
@@ -58,11 +58,11 @@ gradientpath = CFD_testing/gradient.dat
 #  rzone point xmid ymid zmid radius level
 #  rzone line x1 y1 z1 x2 y2 z2 radius level
 #  rzone quad xmin ymin zmin xmax ymax zmax level
-rzone point 0.1 0.0 0.0 0.1 12
+#rzone point 0.1 0.0 0.0 0.1 12
 #rzone point 0.2 0.1 0.0 0.075 12
 #rzone point 0.05 0.2 0.0 0.3 11
 #rzone point 0.075 0.1 0.0 0.05 12
-rzone point 1.0 0.0 0.0 0.01 13
+#rzone point 1.0 0.0 0.0 0.01 13
 #rzone point 1.0 0.0 0.0 0.0025 16
 #rzone line 0.8 0.1 0.0 1.0 1.1 0.0 0.1 11
 #rzone quad 0.6 -0.2 0.0 1.1 0.2 0.0 12
