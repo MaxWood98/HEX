@@ -133,6 +133,9 @@ if (options%allow_postprocess) then
         do ii=1,options%nclipplane
             call clip_to_plane(mesh,options%clip_planes(ii)%v1(1:2),options%clip_planes(ii)%v2(1:2))
         end do 
+        if (options%cdisplay) then 
+        write(*,'(A,I0,A)') '    {clipped mesh to ',options%nclipplane,' planes}'
+    end if
     end if 
 
     !check for and eliminate zero length edges 

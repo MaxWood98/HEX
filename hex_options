@@ -13,10 +13,10 @@ meshpath = CFD_testing/grid
 # geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/wedge.fv
 # geompath = test_geometries/klunkerharder_0p100.fv
-geompath = test_geometries/cavos_8x8_rand.fv
+# geompath = test_geometries/cavos_8x8_rand.fv
 # geompath = test_geometries/shopt_0p1.fv
 # geompath = test_geometries/8x8_cavos_opt.fv
-# geompath = test_geometries/turning_duct.fv
+geompath = test_geometries/turning_duct.fv
 # geompath = test_geometries/maxwood.fv
 # geompath = test_geometries/mandychan.fv
 # geompath = test_geometries/mattbeckett.fv
@@ -36,7 +36,7 @@ mesh_farfield_r = 12.0
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 11
+tree_nrefine = 8
 tree_nflood_coarse = 2
 tree_nflood_mid = 8
 tree_nflood_fine = 16
@@ -70,15 +70,15 @@ gradientpath = CFD_testing/gradient.dat
 
 #clip planes: 
 #  cplane x1 y1 z1 x2 y2 z2
-#cplane -1.0 10.5 0.0 1.0 10.5 0.0
-#cplane 0.5 -1.0 0.0 0.5 1.0 0.0
+cplane -1.0 10.5 0.0 1.0 10.5 0.0
+cplane 0.5 -1.0 0.0 0.5 1.0 0.0
 
 #boundary condition zoning:
 #  bczone xmin ymin zmin xmax ymax zmax boundary_condition_tag
-#bczone -1 0.5 0.0 1.0 3.5 0.0 -3
-#bczone 7.5 10.0 0.0 10.5 11.0 0.0 -4
+bczone -1 0.5 0.0 1.0 3.5 0.0 -3
+bczone 7.5 10.0 0.0 10.5 11.0 0.0 -4
 
 #boundary removal tags
 # bcremove tag
-#bcremove -2 
+bcremove -2 
 #bcremove -3 

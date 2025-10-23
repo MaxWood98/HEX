@@ -75,21 +75,21 @@ end
 patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','b','linewidth',0.1,'marker','.','markeredgecolor','b')
 
 
-% farfield_edges = [];
-% for ii=1:mesh.nedge
-%     if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
-%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-%     end
-% end
-% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
-% 
-% farfield_edges = [];
-% for ii=1:mesh.nedge
-%     if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
-%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-%     end
-% end
-% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
+farfield_edges = [];
+for ii=1:mesh.nedge
+    if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
+        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+    end
+end
+patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
+
+farfield_edges = [];
+for ii=1:mesh.nedge
+    if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
+        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+    end
+end
+patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
 
 
 
@@ -142,23 +142,23 @@ ylabel('y')
 % axis([0.9768    1.0221   -0.0299    0.0089])
 
 %plot edge normals 
-% evins = 0;
-% enface = zeros(mesh.nedge,2);
-% envtx = zeros(2*mesh.nedge,2);
-% for ii=1:mesh.nedge
-%     evins = evins + 1;
-%     enface(ii,1) = evins;
-%     emidv =  0.5*(mesh.vertex(mesh.edge(ii,1),:) + mesh.vertex(mesh.edge(ii,2),:));
-%     envtx(evins,:) = emidv;
-%     dx = mesh.vertex(mesh.edge(ii,2),1) - mesh.vertex(mesh.edge(ii,1),1);
-%     dy = mesh.vertex(mesh.edge(ii,2),2) - mesh.vertex(mesh.edge(ii,1),2);
-%     evins = evins + 1;
-%     enface(ii,2) = evins;
-%     envtx(evins,:) = emidv;
-%     envtx(evins,1) = envtx(evins,1) - 0.5*dy;
-%     envtx(evins,2) = envtx(evins,2) + 0.5*dx;
-% end 
-% patch('faces',enface,'vertices',envtx,'edgecolor','r')
+evins = 0;
+enface = zeros(mesh.nedge,2);
+envtx = zeros(2*mesh.nedge,2);
+for ii=1:mesh.nedge
+    evins = evins + 1;
+    enface(ii,1) = evins;
+    emidv =  0.5*(mesh.vertex(mesh.edge(ii,1),:) + mesh.vertex(mesh.edge(ii,2),:));
+    envtx(evins,:) = emidv;
+    dx = mesh.vertex(mesh.edge(ii,2),1) - mesh.vertex(mesh.edge(ii,1),1);
+    dy = mesh.vertex(mesh.edge(ii,2),2) - mesh.vertex(mesh.edge(ii,1),2);
+    evins = evins + 1;
+    enface(ii,2) = evins;
+    envtx(evins,:) = emidv;
+    envtx(evins,1) = envtx(evins,1) - 0.5*dy;
+    envtx(evins,2) = envtx(evins,2) + 0.5*dx;
+end 
+patch('faces',enface,'vertices',envtx,'edgecolor','r')
 
 % hold on
 % cell_midpoint = load('cell_midpoint');
