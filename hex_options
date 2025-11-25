@@ -9,8 +9,8 @@ meshpath = CFD_testing/grid
 
 #surface geometry filepath 
 # geompath = test_geometries/square.fv
-# geompath = test_geometries/NACA_0012.fv
-geompath = test_geometries/RAE_2822.fv
+geompath = test_geometries/NACA_0012.fv
+# geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/wedge.fv
 # geompath = test_geometries/klunkerharder_0p100.fv
 # geompath = test_geometries/cavos_8x8_rand.fv
@@ -25,7 +25,7 @@ geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/cavos_3x3.fv
 
 #mesh the geometry internal or external
-mesh_in_out = external
+mesh_in_out = internal
 
 #mesh property options
 mesh_edgelength_min = 1e-10
@@ -36,10 +36,10 @@ mesh_farfield_r = 12.0
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 11
+tree_nrefine = 8
 tree_nflood_coarse = 2
-tree_nflood_mid = 8
-tree_nflood_fine = 16
+tree_nflood_mid = 2
+tree_nflood_fine = 2
 
 #mesh postprocessing options 
 postprocess_allow_postprocess = yes
