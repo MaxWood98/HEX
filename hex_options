@@ -36,10 +36,10 @@ mesh_farfield_r = 12.0
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 8
-tree_nflood_coarse = 2
-tree_nflood_mid = 2
-tree_nflood_fine = 2
+tree_nrefine = 11
+tree_nflood_coarse = 4
+tree_nflood_mid = 8
+tree_nflood_fine = 12
 
 #mesh postprocessing options 
 postprocess_allow_postprocess = yes
