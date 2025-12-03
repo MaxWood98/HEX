@@ -186,6 +186,10 @@ if (options%allow_postprocess) then
         write(*,'(A,I0,A)') '    {merged ',nsmall,' small cells}'
     end if
 
+    !collapse multiple edges between the same two cells into a single edge 
+
+
+
     !set any boundary condition zones 
     if (options%nbczone .GT. 0) then 
         do ii=1,options%nbczone
