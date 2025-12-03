@@ -97,7 +97,7 @@ logical :: in_line
 real(dp) :: v1(2),v2(2),vp(2)
 
 !evaluate
-if (dot_product(vp-v1,vp-v2) <= 0.0d0) then
+if (dot_product(vp-v1,vp-v2) .LE. 0.0d0) then
     in_line = .true.
 else
     in_line = .false.
