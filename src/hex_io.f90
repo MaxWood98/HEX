@@ -388,7 +388,7 @@ write(11,'(A,I0)') 'ncell = ',mesh%ncell
 do ii=1,mesh%ncell
 
     !get ordered loop of edges for this cell 
-    loop(1:mesh%cell(ii)%nedge) = mesh%cell(ii)%get_edge_loop(mesh)
+    loop(1:mesh%cell(ii)%nedge) = mesh%cell(ii)%get_edge_loop(mesh,.false.)
 
     !debug 
     ! print *, 'cell -> ', mesh%cell(ii)%index,' || ',mesh%cell(ii)%nedge

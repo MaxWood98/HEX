@@ -117,6 +117,8 @@ hold on
 %plot mesh 
 patch('Faces',cells_full,'Vertices',mesh.vertices,'edgecolor','k','facecolor','none')
 
+plot(mesh.vertices(:,1),mesh.vertices(:,2),'r.','markersize',10)
+
 % patch('Faces',cells_full(4249,:),'Vertices',mesh.vertices,'edgecolor','k','facecolor','r')
 
 %format
@@ -124,3 +126,5 @@ hold off
 axis equal
 axis tight
 box on 
+
+% axis([0.8125    0.8127    0.0599    0.0601])

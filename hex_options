@@ -29,14 +29,14 @@ mesh_in_out = external
 
 #mesh property options
 mesh_edgelength_min = 1e-10
-mesh_cellvol_min = 1e-10
+mesh_cellvol_min = 1e-8
 mesh_ncell_max = 1000000
 mesh_farfield_r = 12.0
 
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 12
+tree_nrefine = 10
 tree_nflood_coarse = 4
 tree_nflood_mid = 8
 tree_nflood_fine = 12

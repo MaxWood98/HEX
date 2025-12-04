@@ -1,7 +1,7 @@
 !hex mesh generator 2d main program
 !max wood
-!version : 0.0.9
-!updated : 10-10-25
+!version : 0.1.0
+!updated : 04-12-25
 
 !module 
 module hex2d
@@ -26,7 +26,7 @@ type(hex_options) :: options
 
 !variables - local 
 integer(in64) :: ii
-integer(in64) :: nbisected,nshort,nsmall,ndegenerate,nunassociated,ndoublebc,nperturb,ntagged,nupdate
+integer(in64) :: nbisected,nshort,nsmall,ndegenerate,ndedge,nunassociated,ndoublebc,nperturb,ntagged,nupdate
 type(hex_mesh), target :: mesh_full
 type(gkdtree), target :: kdtree
 type(tritree), target :: tri_tree 
@@ -164,11 +164,14 @@ if (options%allow_postprocess) then
         end if 
     end if 
 
-    !check for and eliminate small and degenerate cells 
+    !check for and eliminate small and degenerate cells along with multiple edges between the same two cells
     ndegenerate = 0 
     nsmall = 0 
+    ndedge = 0
     do ii=1,mesh%nedge
         nupdate = 0
+        call remove_edges_with_shared_cells(mesh,ntagged)
+        ndedge = ndedge + ntagged
         call collapse_small_or_degenerate_cells(mesh,options,ntagged,'small')
         nsmall = nsmall + ntagged
         nupdate = nupdate + ntagged
@@ -185,10 +188,9 @@ if (options%allow_postprocess) then
     if (options%cdisplay) then 
         write(*,'(A,I0,A)') '    {merged ',nsmall,' small cells}'
     end if
-
-    !collapse multiple edges between the same two cells into a single edge 
-
-
+    if (options%cdisplay) then 
+        write(*,'(A,I0,A)') '    {eliminated ',ndedge,' cell-duplicate edges}'
+    end if
 
     !set any boundary condition zones 
     if (options%nbczone .GT. 0) then 
@@ -197,6 +199,12 @@ if (options%allow_postprocess) then
         end do 
     end if 
 end if
+
+!simplify surfaces
+
+call simplify_surfaces(mesh)
+
+
 
 !remove regions connected to specified boundary conditions 
 if (options%nbcremzone .GT. 0) then 
@@ -209,8 +217,10 @@ end if
 
 
 
-!index edges and cells 
+!index mesh
+call mesh%index_vertices()
 call mesh%index_edges()
+call mesh%get_v2e()
 call mesh%get_cells()
 
 !evaluate cell areas

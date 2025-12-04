@@ -186,13 +186,14 @@ end function is_on_surface_vertex
 
 
 !get cell edge loop =========================
-function get_edge_loop_cell(self,mesh) result(loop)
+function get_edge_loop_cell(self,mesh,start_with_non_bc_edge) result(loop)
 implicit none 
 
 !cell class
 class(hex_cell), target :: self
 
 !variables - inout
+logical :: start_with_non_bc_edge
 integer(in64) :: loop(self%nedge)
 class(hex_mesh), target :: mesh
 
@@ -204,8 +205,16 @@ type(hex_vertex), pointer :: vertexc
 !build loop 
 lins = 2
 loop(:) = 0 
-loop(1) = self%edges(1)
-edgec = self%edges(1)
+if (start_with_non_bc_edge) then !find non boundary condition edge to start from 
+
+
+
+
+    
+else !start from first edge
+    loop(1) = self%edges(1)
+end if 
+edgec = loop(1) !self%edges(1)
 do ii=1,self%nedge
 
     !find next edge on this cell 

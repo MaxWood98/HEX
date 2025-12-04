@@ -1,7 +1,7 @@
 !hex postprocess module
 !max wood
-!version : 0.0.6
-!updated : 22-06-25
+!version : 0.0.7
+!updated : 04-12-25
 
 !module 
 module hex_postprocess
@@ -11,6 +11,262 @@ use hex_data_methods
 !routines 
 contains 
 
+!simplify surfaces =========================
+subroutine simplify_surfaces(mesh)
+implicit none 
+
+!variables - inout 
+type(hex_mesh), target :: mesh
+
+!variables - local
+logical :: is_surface
+integer(in64) :: ee,vv,cc
+integer(in64) :: cadjp,cadjn,ep,en,edgep,edgen,vend,eend,vstart,estart
+integer(in64) :: loop(mesh%nedge)
+
+!build the mesh cells 
+call mesh%index_vertices()
+call mesh%index_edges()
+call mesh%get_v2e()
+call mesh%get_cells()
+
+!set edge flags
+do ee=1,mesh%nedge 
+    mesh%edge(ee)%flag = .false.
+end do 
+
+!simplify by cell 
+do cc=1,mesh%ncell
+
+    !check if any surface edges 
+    is_surface = .false.
+    do ee=1,mesh%cell(cc)%nedge
+        if ((mesh%edge(mesh%cell(cc)%edges(ee))%cell1 == -1) .OR. (mesh%edge(mesh%cell(cc)%edges(ee))%cell2 == -1)) then 
+            is_surface = .true.
+            exit
+        end if 
+    end do 
+    if (.NOT.is_surface) then 
+        cycle
+    end if 
+
+    !get ordered loop of edges for this cell 
+    loop(1:mesh%cell(cc)%nedge) = mesh%cell(cc)%get_edge_loop(mesh,.true.)
+
+    !find a non-surface edge and re-order loop to start from this edge -> add option to get_edge_loop to allow this to happen nativly 
+
+
+
+    ! !find first and last surface edge and vertex and tag all edges between these to eliminate
+    ! vstart = -1
+    ! estart = -1
+    ! vend = -1
+    ! eend = -1
+    ! is_surface = .false.
+    ! do ee=1,mesh%cell(cc)%nedge
+
+    !     !get next and previous edges
+    !     ep = mod(ee+mesh%cell(cc)%nedge-2,mesh%cell(cc)%nedge) + 1
+    !     en = ee 
+    !     edgep = loop(ep)
+    !     edgen = loop(en)
+
+    !     !if next edge is surface and current is not -> store first items
+    !     if ((mesh%edge(edgen)%cell1 == -1) .OR. (mesh%edge(edgen)%cell2 == -1)) then 
+    !         if ((mesh%edge(edgep)%cell1 .NE. -1) .and. (mesh%edge(edgep)%cell2 .NE. -1)) then 
+    !             estart = edgen
+    !             if ((mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex1%index) .OR. (mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex2%index)) then 
+    !                 vstart = mesh%edge(edgep)%vertex1%index 
+    !             else
+    !                 vstart = mesh%edge(edgep)%vertex2%index 
+    !             end if 
+    !         end if  
+    !         is_surface = .true.
+    !     end if 
+
+    !     !tag edge 
+    !     if (is_surface) then 
+    !         if ((mesh%edge(edgen)%cell1 == -1) .OR. (mesh%edge(edgen)%cell2 == -1)) then 
+    !             mesh%edge(edgen)%flag = .true.
+    !         end if 
+    !     end if
+
+    !     !if next edge is not surface and current is -> store final items
+    !     if ((mesh%edge(edgep)%cell1 == -1) .OR. (mesh%edge(edgep)%cell2 == -1)) then 
+    !         if ((mesh%edge(edgen)%cell1 .NE. -1) .and. (mesh%edge(edgen)%cell2 .NE. -1)) then 
+    !             eend = edgep
+    !             if ((mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex1%index) .OR. (mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex2%index)) then 
+    !                 vend = mesh%edge(edgep)%vertex1%index 
+    !             else
+    !                 vend = mesh%edge(edgep)%vertex2%index 
+    !             end if 
+    !         end if 
+    !         is_surface = .false.
+    !     end if 
+
+    !     !exit if first and last edge and vertex found 
+    !     if ((estart .GT. 0) .AND. (eend .GT. 0)) then 
+    !         exit 
+    !     end if 
+    ! end do 
+   
+    ! !if not all items have been correctly found return some error ??
+
+    ! ! !tag all surface edges between estart and eend to eliminate
+    ! ! do ee=1,mesh%cell(cc)%nedge 
+    ! !     edgen = loop(ee)
+
+    ! !     ! if ((mesh%edge(loop(ee))%cell1 == -1) .OR. (mesh%edge(loop(ee))%cell2 == -1)) then 
+    ! !     !     mesh%edge(loop(ee))%flag = .True.
+    ! !     ! end if 
+    ! ! end do 
+
+        
+
+end do 
+
+
+! !remove edges
+! call remove_flagged_edges(mesh)
+
+! !set flags of vertices
+! do vv=1,mesh%nvertex 
+!     mesh%vertex(vv)%flag = .true.
+! end do 
+! do ee=1,mesh%nedge 
+!     mesh%edge(ee)%vertex1%flag = .false.
+!     mesh%edge(ee)%vertex2%flag = .false.
+! end do 
+
+! !remove vertices
+! call remove_flagged_vertices(mesh)
+
+! !reindex mesh 
+! call mesh%index_vertices()
+! call mesh%index_edges()
+! call mesh%index_cells()
+return 
+end subroutine simplify_surfaces
+
+!remove edges with shared cells =========================
+subroutine remove_edges_with_shared_cells(mesh,ntagged)
+implicit none 
+
+!variables - inout 
+integer(in64) :: ntagged
+type(hex_mesh), target :: mesh
+
+!variables - local
+integer(in64) :: ee,vv,cc
+integer(in64) :: cadjp,cadjn,ep,en,edgep,edgen,vend,vstart
+integer(in64) :: loop(mesh%nedge)
+
+!build the mesh cells 
+call mesh%index_vertices()
+call mesh%index_edges()
+call mesh%get_v2e()
+call mesh%get_cells()
+
+!set cell and edge flags
+do cc=1,mesh%ncell
+    mesh%edge(cc)%flag = .false.
+end do 
+do ee=1,mesh%nedge 
+    mesh%edge(ee)%flag = .false.
+end do 
+
+!merge edges by cell
+ntagged = 0  
+do cc=1,mesh%ncell
+
+    !skip cell if flagged
+    if (mesh%cell(cc)%flag) then
+        cycle 
+    end if 
+
+    !get ordered loop of edges for this cell 
+    loop(1:mesh%cell(cc)%nedge) = mesh%cell(cc)%get_edge_loop(mesh,.false.)
+
+    !search for a pairs of cell shared edges 
+    do ee=1,mesh%cell(cc)%nedge
+
+        !get next and previous edges
+        ep = mod(ee+mesh%cell(cc)%nedge-2,mesh%cell(cc)%nedge) + 1
+        en = ee 
+        edgep = loop(ep)
+        edgen = loop(en)
+        
+        !if these edges share the same other cell then merge them and exit this search 
+        if (mesh%edge(edgep)%cell1 == cc) then 
+            cadjp = mesh%edge(edgep)%cell2
+        else
+            cadjp = mesh%edge(edgep)%cell1
+        end if 
+        if (mesh%edge(edgen)%cell1 == cc) then 
+            cadjn = mesh%edge(edgen)%cell2
+        else
+            cadjn = mesh%edge(edgen)%cell1
+        end if 
+        if ((cadjp .GT. 0) .AND. (cadjn .GT. 0)) then 
+            if (cadjp == cadjn) then 
+
+                !flag edgen to remove and count 
+                mesh%edge(edgen)%flag = .true.
+                ntagged = ntagged + 1
+
+                !get the vertex in edgep not in edgen 
+                if ((mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex1%index) .OR. (mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex2%index)) then 
+                    vstart = mesh%edge(edgep)%vertex2%index 
+                else
+                    vstart = mesh%edge(edgep)%vertex1%index 
+                end if 
+
+                !get the vertex in edgen not in edgep 
+                if ((mesh%edge(edgen)%vertex1%index == mesh%edge(edgep)%vertex1%index) .OR. (mesh%edge(edgen)%vertex1%index == mesh%edge(edgep)%vertex2%index)) then 
+                    vend = mesh%edge(edgen)%vertex2%index 
+                else
+                    vend = mesh%edge(edgen)%vertex1%index 
+                end if 
+
+                !rebuild edgep 
+                if (vstart == mesh%edge(edgep)%vertex1%index) then 
+                    mesh%edge(edgep)%vertex1 => mesh%vertex(vstart)
+                    mesh%edge(edgep)%vertex2 => mesh%vertex(vend)
+                else
+                    mesh%edge(edgep)%vertex1 => mesh%vertex(vend)
+                    mesh%edge(edgep)%vertex2 => mesh%vertex(vstart)
+                end if 
+
+                !flag the adjacent cells and exit this loop
+                mesh%cell(cc)%flag = .true.
+                mesh%cell(cadjp)%flag = .true.
+                exit
+            end if 
+        end if 
+    end do 
+end do 
+
+!remove edges
+call remove_flagged_edges(mesh)
+
+!set flags of vertices
+do vv=1,mesh%nvertex 
+    mesh%vertex(vv)%flag = .true.
+end do 
+do ee=1,mesh%nedge 
+    mesh%edge(ee)%vertex1%flag = .false.
+    mesh%edge(ee)%vertex2%flag = .false.
+end do 
+
+!remove vertices
+call remove_flagged_vertices(mesh)
+
+!reindex mesh 
+call mesh%index_vertices()
+call mesh%index_edges()
+call mesh%index_cells()
+return 
+end subroutine remove_edges_with_shared_cells
 
 !remove cells on target boundary condition =========================
 subroutine remove_cells_on_boundary_condition(mesh,boundary_condition)
