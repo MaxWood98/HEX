@@ -9,10 +9,10 @@ meshpath = CFD_testing/grid
 
 #surface geometry filepath 
 # geompath = test_geometries/square.fv
-# geompath = test_geometries/NACA_0012.fv
+geompath = test_geometries/NACA_0012.fv
 # geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/wedge.fv
-geompath = test_geometries/klunkerharder_0p100.fv
+# geompath = test_geometries/klunkerharder_0p100.fv
 # geompath = test_geometries/cavos_8x8_rand.fv
 # geompath = test_geometries/shopt_0p1.fv
 # geompath = test_geometries/8x8_cavos_opt.fv
@@ -25,18 +25,18 @@ geompath = test_geometries/klunkerharder_0p100.fv
 # geompath = test_geometries/cavos_3x3.fv
 
 #mesh the geometry internal or external
-mesh_in_out = external
+mesh_in_out = internal
 
 #mesh property options
 mesh_edgelength_min = 1e-10
-mesh_cellvol_min = 1e-8
+mesh_cellvol_min = 1e-7
 mesh_ncell_max = 1000000
 mesh_farfield_r = 12.0
 
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 10
+tree_nrefine = 12
 tree_nflood_coarse = 4
 tree_nflood_mid = 8
 tree_nflood_fine = 12
@@ -45,6 +45,7 @@ tree_nflood_fine = 12
 postprocess_allow_postprocess = yes
 postprocess_nsmooth_interlayer = 1
 postprocess_nsmooth_farfield = 2
+postprocess_simplify_surfaces = yes
 
 #mesh trimming options 
 postprocess_remove_farfield_adjacent = yes
@@ -58,7 +59,7 @@ gradientpath = CFD_testing/gradient.dat
 #  rzone point xmid ymid zmid radius level
 #  rzone line x1 y1 z1 x2 y2 z2 radius level
 #  rzone quad xmin ymin zmin xmax ymax zmax level
-rzone point 0.0 0.0 0.0 0.01 13
+#rzone point 0.0 0.0 0.0 0.01 13
 #rzone point 0.2 0.1 0.0 0.075 12
 #rzone point 0.05 0.2 0.0 0.3 11
 #rzone point 0.075 0.1 0.0 0.05 12

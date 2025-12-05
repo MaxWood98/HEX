@@ -21,7 +21,7 @@ type(hex_mesh), target :: mesh
 !variables - local
 logical :: is_surface
 integer(in64) :: ee,vv,cc
-integer(in64) :: cadjp,cadjn,ep,en,edgep,edgen,vend,eend,vstart,estart
+integer(in64) :: ep,en,edgep,edgen,vend,vstart,estart
 integer(in64) :: loop(mesh%nedge)
 
 !build the mesh cells 
@@ -53,98 +53,79 @@ do cc=1,mesh%ncell
     !get ordered loop of edges for this cell 
     loop(1:mesh%cell(cc)%nedge) = mesh%cell(cc)%get_edge_loop(mesh,.true.)
 
-    !find a non-surface edge and re-order loop to start from this edge -> add option to get_edge_loop to allow this to happen nativly 
+    !tag all surface edges to eliminate
+    do ee=1,mesh%cell(cc)%nedge
+        if (mesh%edge(loop(ee))%is_boundary(-1_in64)) then 
+            mesh%edge(loop(ee))%flag = .true.
+        end if 
+    end do 
 
+    !simplify surface sections of the loop 
+    vstart = -1
+    estart = -1
+    do ee=1,mesh%cell(cc)%nedge
 
+        !get next and previous edges
+        ep = ee 
+        en = mod(ee,mesh%cell(cc)%nedge) + 1
+        edgep = loop(ep)
+        edgen = loop(en)
 
-    ! !find first and last surface edge and vertex and tag all edges between these to eliminate
-    ! vstart = -1
-    ! estart = -1
-    ! vend = -1
-    ! eend = -1
-    ! is_surface = .false.
-    ! do ee=1,mesh%cell(cc)%nedge
+        !if next is surface and previous is not -> store start vertex and edge
+        if (.NOT. mesh%edge(edgep)%is_boundary(-1_in64)) then 
+            if (mesh%edge(edgen)%is_boundary(-1_in64)) then 
+                vstart = mesh%get_edges_shared_vertex(edgep,edgen)
+                estart = edgen
+            end if 
+        end if 
 
-    !     !get next and previous edges
-    !     ep = mod(ee+mesh%cell(cc)%nedge-2,mesh%cell(cc)%nedge) + 1
-    !     en = ee 
-    !     edgep = loop(ep)
-    !     edgen = loop(en)
+        !if next is not surface and previous is -> find edge vertex and simplify
+        if (.NOT. mesh%edge(edgen)%is_boundary(-1_in64)) then 
+            if (mesh%edge(edgep)%is_boundary(-1_in64)) then 
 
-    !     !if next edge is surface and current is not -> store first items
-    !     if ((mesh%edge(edgen)%cell1 == -1) .OR. (mesh%edge(edgen)%cell2 == -1)) then 
-    !         if ((mesh%edge(edgep)%cell1 .NE. -1) .and. (mesh%edge(edgep)%cell2 .NE. -1)) then 
-    !             estart = edgen
-    !             if ((mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex1%index) .OR. (mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex2%index)) then 
-    !                 vstart = mesh%edge(edgep)%vertex1%index 
-    !             else
-    !                 vstart = mesh%edge(edgep)%vertex2%index 
-    !             end if 
-    !         end if  
-    !         is_surface = .true.
-    !     end if 
+                !find the end vertrex
+                vend = mesh%get_edges_shared_vertex(edgep,edgen)
 
-    !     !tag edge 
-    !     if (is_surface) then 
-    !         if ((mesh%edge(edgen)%cell1 == -1) .OR. (mesh%edge(edgen)%cell2 == -1)) then 
-    !             mesh%edge(edgen)%flag = .true.
-    !         end if 
-    !     end if
+                !untag the first edge for removal  
+                mesh%edge(estart)%flag = .false.
 
-    !     !if next edge is not surface and current is -> store final items
-    !     if ((mesh%edge(edgep)%cell1 == -1) .OR. (mesh%edge(edgep)%cell2 == -1)) then 
-    !         if ((mesh%edge(edgen)%cell1 .NE. -1) .and. (mesh%edge(edgen)%cell2 .NE. -1)) then 
-    !             eend = edgep
-    !             if ((mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex1%index) .OR. (mesh%edge(edgep)%vertex1%index == mesh%edge(edgen)%vertex2%index)) then 
-    !                 vend = mesh%edge(edgep)%vertex1%index 
-    !             else
-    !                 vend = mesh%edge(edgep)%vertex2%index 
-    !             end if 
-    !         end if 
-    !         is_surface = .false.
-    !     end if 
+                !rebuild this edge
+                if (vstart == mesh%edge(estart)%vertex1%index) then 
+                    mesh%edge(estart)%vertex1 => mesh%vertex(vstart)
+                    mesh%edge(estart)%vertex2 => mesh%vertex(vend)
+                else
+                    mesh%edge(estart)%vertex1 => mesh%vertex(vend)
+                    mesh%edge(estart)%vertex2 => mesh%vertex(vstart)
+                end if 
 
-    !     !exit if first and last edge and vertex found 
-    !     if ((estart .GT. 0) .AND. (eend .GT. 0)) then 
-    !         exit 
-    !     end if 
-    ! end do 
-   
-    ! !if not all items have been correctly found return some error ??
+                !reset start items
+                vstart = -1
+                estart = -1
+            end if 
+        end if 
 
-    ! ! !tag all surface edges between estart and eend to eliminate
-    ! ! do ee=1,mesh%cell(cc)%nedge 
-    ! !     edgen = loop(ee)
-
-    ! !     ! if ((mesh%edge(loop(ee))%cell1 == -1) .OR. (mesh%edge(loop(ee))%cell2 == -1)) then 
-    ! !     !     mesh%edge(loop(ee))%flag = .True.
-    ! !     ! end if 
-    ! ! end do 
-
-        
-
+    end do 
 end do 
 
+!remove edges
+call remove_flagged_edges(mesh)
 
-! !remove edges
-! call remove_flagged_edges(mesh)
+!set flags of vertices
+do vv=1,mesh%nvertex 
+    mesh%vertex(vv)%flag = .true.
+end do 
+do ee=1,mesh%nedge 
+    mesh%edge(ee)%vertex1%flag = .false.
+    mesh%edge(ee)%vertex2%flag = .false.
+end do 
 
-! !set flags of vertices
-! do vv=1,mesh%nvertex 
-!     mesh%vertex(vv)%flag = .true.
-! end do 
-! do ee=1,mesh%nedge 
-!     mesh%edge(ee)%vertex1%flag = .false.
-!     mesh%edge(ee)%vertex2%flag = .false.
-! end do 
+!remove vertices
+call remove_flagged_vertices(mesh)
 
-! !remove vertices
-! call remove_flagged_vertices(mesh)
-
-! !reindex mesh 
-! call mesh%index_vertices()
-! call mesh%index_edges()
-! call mesh%index_cells()
+!reindex mesh 
+call mesh%index_vertices()
+call mesh%index_edges()
+call mesh%index_cells()
 return 
 end subroutine simplify_surfaces
 
@@ -865,6 +846,15 @@ do ii=1,mesh%nedge
     end if
 end do 
 
+!un-flag vertices connected to surfaces by edges
+do ii=1,mesh%nedge
+    if ((mesh%edge(ii)%vertex1%tag == 2) .AND. (mesh%edge(ii)%vertex2%tag == 0)) then 
+        mesh%edge(ii)%vertex2%flag = .false.
+    elseif ((mesh%edge(ii)%vertex2%tag == 2) .AND. (mesh%edge(ii)%vertex1%tag == 0)) then 
+        mesh%edge(ii)%vertex1%flag = .false.
+    end if 
+end do 
+
 ! !flood vertex flags if requested
 ! do ss=1,1
 !     do ii=1,mesh%nvertex
@@ -941,6 +931,9 @@ integer(in64) :: etgt,ecell,cnew
 real(dp) :: etgt_len,ecell_len
 
 !get cells 
+call mesh%index_vertices()
+call mesh%index_edges()
+call mesh%get_v2e()
 call mesh%get_cells()
 
 !get cell areas
@@ -1429,6 +1422,11 @@ do ii=1,mesh%nvertex
         mesh%vertex(vertex_temp(ii)%index)%tag = vertex_temp(ii)%tag 
         mesh%vertex(vertex_temp(ii)%index)%index = vertex_temp(ii)%index 
         mesh%vertex(vertex_temp(ii)%index)%coordinate = vertex_temp(ii)%coordinate 
+        mesh%vertex(vertex_temp(ii)%index)%rdata = vertex_temp(ii)%rdata 
+        if (allocated(vertex_temp(ii)%ivdata)) then 
+            allocate(mesh%vertex(vertex_temp(ii)%index)%ivdata(size(vertex_temp(ii)%ivdata)))
+            mesh%vertex(vertex_temp(ii)%index)%ivdata = vertex_temp(ii)%ivdata
+        end if 
     end if 
 end do 
 

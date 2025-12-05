@@ -15,12 +15,12 @@ addpath(genpath('matlab_utilities'));
 % filename = 'test_geometries/wedge.fv';
 % filename = 'test_geometries/NACA_0012.fv';
 % filename = 'test_geometries/RAE_2822.fv';
-filename = 'test_geometries\cavos_3x3.fv';
-[geom] = import_fv_mesh(filename);
+% filename = 'test_geometries\cavos_3x3.fv';
+% [geom] = import_fv_mesh(filename);
 % [geom] = build_full_faces(geom);
 
 %load mesh 
-[mesh.ncell,mesh.nedge,mesh.nvtx,mesh.edge,mesh.vertex,mesh.cell_lr] = import_mesh_cm2d('CFD_testing/grid');
+[mesh.ncell,mesh.nedge,mesh.nvtx,mesh.edge,mesh.vertex,mesh.cell_lr] = import_mesh_cm2d('grid');
 % [mesh.ncell,mesh.nedge,mesh.nvtx,mesh.edge,mesh.vertex,mesh.cell_lr] = import_mesh_cm2d('naca0012');
 
 
@@ -58,38 +58,38 @@ patch('Faces',mesh.edge,'Vertices',mesh.vertex,'edgecolor','k')
 
 % plot(mesh.vertex(:,1),mesh.vertex(:,2),'k.')
 
-surface_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -1
-        surface_edges = [surface_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',surface_edges,'Vertices',mesh.vertex,'edgecolor','r','linewidth',0.1,'marker','.','markeredgecolor','r')
-
-farfield_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -2 %|| mesh.cell_lr(ii,2) == -2
-        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','b','linewidth',0.1,'marker','.','markeredgecolor','b')
-
-
-farfield_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
-        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
-
-farfield_edges = [];
-for ii=1:mesh.nedge
-    if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
-        farfield_edges = [farfield_edges;mesh.edge(ii,:)];
-    end
-end
-patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
+% surface_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -1
+%         surface_edges = [surface_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',surface_edges,'Vertices',mesh.vertex,'edgecolor','r','linewidth',0.1,'marker','.','markeredgecolor','r')
+% 
+% farfield_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -2 %|| mesh.cell_lr(ii,2) == -2
+%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','b','linewidth',0.1,'marker','.','markeredgecolor','b')
+% 
+% 
+% farfield_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -3 %|| mesh.cell_lr(ii,2) == -2
+%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','g','linewidth',0.1,'marker','.','markeredgecolor','g')
+% 
+% farfield_edges = [];
+% for ii=1:mesh.nedge
+%     if mesh.cell_lr(ii,1) == -4 %|| mesh.cell_lr(ii,2) == -2
+%         farfield_edges = [farfield_edges;mesh.edge(ii,:)];
+%     end
+% end
+% patch('Faces',farfield_edges,'Vertices',mesh.vertex,'edgecolor','m','linewidth',0.1,'marker','.','markeredgecolor','m')
 
 
 

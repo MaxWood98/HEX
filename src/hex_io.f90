@@ -184,6 +184,7 @@ options%tree_offset(:) = (/0.0d0,0.0d0,0.0d0/)
 call set_log_opt(options%allow_postprocess,11,'postprocess_allow_postprocess')
 call set_int_opt(options%nsmooth_interlayer,11,'postprocess_nsmooth_interlayer')
 call set_int_opt(options%nsmooth_farfield,11,'postprocess_nsmooth_farfield')
+call set_log_opt(options%simplify_surfaces,11,'postprocess_simplify_surfaces')
 
 !read refinement zones 
 index = 0 

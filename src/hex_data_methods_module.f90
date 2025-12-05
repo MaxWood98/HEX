@@ -17,7 +17,7 @@ use ISO_FORTRAN_ENV, only: dp=>real64
 
 !options type
 type hex_options
-    logical :: cdisplay,allow_postprocess,geom_from_commandline,options_from_commandline
+    logical :: cdisplay,allow_postprocess,geom_from_commandline,options_from_commandline,simplify_surfaces
     character(len=:), allocatable :: geomname,geompath,optionsname,optionspath,gradientpath,gradientname
     character(len=:), allocatable :: meshpath,meshname,gradient_method
     character(len=:), allocatable :: mesh_in_out,mode,mesh_treetype,tree_mesh_relation,geom_cell_link_method
@@ -75,6 +75,7 @@ type hex_edge
     contains
         procedure :: split => split_hex_edge
         procedure :: area => hex_edge_area
+        procedure :: is_boundary => is_boundary_edge
 end type hex_edge
 
 !mesh cell type 
@@ -109,12 +110,54 @@ type hex_mesh
         procedure :: index_cells
         procedure :: get_cell_edges
         procedure :: get_cells
+        procedure :: get_edges_shared_vertex
 end type hex_mesh
 
 
 
 !methods ==================================================
 contains 
+
+!get vertex shared between edges =========================
+function get_edges_shared_vertex(self,edge1,edge2) result(vertex)
+implicit none 
+
+!mesh class
+class(hex_mesh), target :: self
+
+!variables - inout
+integer(in64) :: edge1,edge2,vertex
+
+!select vertex
+if ((self%edge(edge1)%vertex1%index == self%edge(edge2)%vertex1%index) .OR. (self%edge(edge1)%vertex1%index == self%edge(edge2)%vertex2%index)) then 
+    vertex = self%edge(edge1)%vertex1%index 
+else
+    vertex = self%edge(edge1)%vertex2%index 
+end if 
+return 
+end function get_edges_shared_vertex
+
+
+!edge is on boundary condition =========================
+function is_boundary_edge(self,boundary_tag) result(is_on_btag)
+implicit none 
+
+!edge class
+class(hex_edge), target :: self
+
+!variables - inout
+logical :: is_on_btag
+integer(in64) :: boundary_tag
+
+!check
+if ((self%cell1 == boundary_tag) .OR. (self%cell2 == boundary_tag)) then 
+    is_on_btag = .true.
+else
+    is_on_btag = .false.
+end if 
+return 
+end function is_boundary_edge
+
 
 !get the edges on this vertex that are surface edges =========================
 function get_surface_edges_vertex(self,mesh) result(surface_edges)
@@ -198,6 +241,7 @@ integer(in64) :: loop(self%nedge)
 class(hex_mesh), target :: mesh
 
 !variables - local 
+logical :: nbcefound
 integer(in64) :: ii,jj
 integer(in64) :: lins,edgec,edgen,eadj
 type(hex_vertex), pointer :: vertexc
@@ -206,11 +250,17 @@ type(hex_vertex), pointer :: vertexc
 lins = 2
 loop(:) = 0 
 if (start_with_non_bc_edge) then !find non boundary condition edge to start from 
-
-
-
-
-    
+    nbcefound = .false.
+    do ii=1,self%nedge
+        if ((mesh%edge(self%edges(ii))%cell1 .GT. 0) .AND. (mesh%edge(self%edges(ii))%cell2 .GT. 0)) then 
+            loop(1) = self%edges(ii)
+            nbcefound = .true.
+            exit
+        end if 
+    end do 
+    if (.NOT.nbcefound) then 
+        loop(1) = self%edges(1)
+    end if 
 else !start from first edge
     loop(1) = self%edges(1)
 end if 

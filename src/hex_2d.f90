@@ -172,6 +172,7 @@ if (options%allow_postprocess) then
         nupdate = 0
         call remove_edges_with_shared_cells(mesh,ntagged)
         ndedge = ndedge + ntagged
+        nupdate = nupdate + ntagged
         call collapse_small_or_degenerate_cells(mesh,options,ntagged,'small')
         nsmall = nsmall + ntagged
         nupdate = nupdate + ntagged
@@ -198,24 +199,24 @@ if (options%allow_postprocess) then
             call set_boundary_condition_inzone(mesh,options%boundarycondition_zones(ii))
         end do 
     end if 
+
+    !simplify surfaces
+    if (options%simplify_surfaces) then 
+        call simplify_surfaces(mesh)
+    end if 
+
+    !remove regions connected to specified boundary conditions 
+    if (options%nbcremzone .GT. 0) then 
+        do ii=1,options%nbcremzone
+            call remove_cells_on_boundary_condition(mesh,options%boundarycondition_remove_zones(ii))
+        end do 
+    end if 
+
+    !remove isolated mesh regions connected only to wall boundary conditions 
+
+
+
 end if
-
-!simplify surfaces
-
-call simplify_surfaces(mesh)
-
-
-
-!remove regions connected to specified boundary conditions 
-if (options%nbcremzone .GT. 0) then 
-    do ii=1,options%nbcremzone
-        call remove_cells_on_boundary_condition(mesh,options%boundarycondition_remove_zones(ii))
-    end do 
-end if 
-
-!remove isolated mesh regions connected only to wall boundary conditions 
-
-
 
 !index mesh
 call mesh%index_vertices()
@@ -1552,6 +1553,7 @@ options%nflood_mid = 10
 options%nflood_fine = 8
 options%nsmooth_interlayer = 1
 options%nsmooth_farfield = 2
+options%simplify_surfaces = .false.
 options%allow_postprocess = .true.
 options%nclipplane = 0 
 options%nrefzone = 0 

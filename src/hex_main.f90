@@ -87,7 +87,9 @@ if (options%mode == 'check') then
 elseif (options%mode == 'mesh') then 
     if (geometry%ndim == 2) then 
         mesh2d = hex2d_mesh(geometry,options)
-        call write_hex_mesh_2d(mesh2d,options%meshpath//options%meshname)
+        ! call write_hex_mesh_2d(mesh2d,options%meshpath//options%meshname)
+
+
     elseif (geometry%ndim == 3) then 
     
     end if 
@@ -121,10 +123,13 @@ end if
 if (options%cdisplay) then 
     write(*,'(A)') '--> exporting mesh'
 end if 
-call write_hex_cell_mesh_2d(mesh2d,'grid_cell')
 
 !DEBUG-TESTING write mesh 
 call write_hex_mesh_2d(mesh2d,'grid')
+
+call write_hex_cell_mesh_2d(mesh2d,'grid_cell')
+
+
 
 !display complete
 if (options%cdisplay) then 
