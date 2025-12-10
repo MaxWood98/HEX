@@ -429,6 +429,14 @@ do ii=1,mesh%nvertex
     write(11,'(E17.10,A,E17.10)') mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
 end do 
 
+!write surface link data 
+write(11,'(A,I0)') 'nvertex_surface = ',mesh%nvertex_surfint 
+do ii=1,mesh%nvertex 
+    if (mesh%vertex(ii)%flag) then 
+        write(11,'(I0,A,E17.10,A,I0,A,I0)') ii,' ',mesh%vertex(ii)%rdata,' ',mesh%vertex(ii)%ivdata(1),' ',mesh%vertex(ii)%ivdata(2) !mesh vertex index | fraction | geometry vertex 1 | geometry vertex 2
+    end if 
+end do
+
 !close file
 close(11)
 if (invalid_cell) then 
@@ -437,6 +445,112 @@ end if
 return 
 end subroutine write_hex_cell_mesh_2d
 
+!hex_cell mesh format import subroutine 2d =========================
+subroutine read_hex_cell_mesh_2d(mesh,filename)
+implicit none 
+
+!variables - inout
+character(*) :: filename
+type(hex_mesh), target :: mesh
+
+!variables - local
+integer(in64) :: ii,jj
+integer(in64) :: iostatus,cindex,nedge,item1,item2,item3,vidx,ev1,ev2
+real(dp) :: ef
+character(len=100) :: rtemp 
+
+!check if file exists 
+if (.NOT. file_exists(filename)) then 
+    write(*,'(A)') '** cannot locate mesh file: '//trim(filename)
+    stop 
+end if 
+
+!open mesh file
+open(11,file=filename) 
+
+!read cells
+iostatus = 0 
+do while (iostatus == 0)
+    read(11,'(A)',iostat=iostatus) rtemp
+    if (rtemp(1:5) == 'ncell') then 
+        read(rtemp(9:len_trim(rtemp)),*) mesh%ncell
+        allocate(mesh%cell(mesh%ncell))
+        do ii=1,mesh%ncell
+            read(11,*) cindex,nedge 
+            mesh%cell(cindex)%nedge = nedge
+            mesh%cell(cindex)%index = cindex
+            allocate(mesh%cell(cindex)%edges(nedge))
+            do jj=1,nedge
+                read(11,*) item1,item2,item3,mesh%cell(cindex)%edges(jj)
+            end do 
+        end do 
+        exit 
+    end if 
+end do
+rewind(11)
+
+!read edges 
+iostatus = 0 
+do while (iostatus == 0)
+    read(11,'(A)',iostat=iostatus) rtemp
+    if (rtemp(1:5) == 'nedge') then 
+        read(rtemp(8:len_trim(rtemp)),*) mesh%nedge
+        allocate(mesh%edge(mesh%nedge))
+        do ii=1,mesh%nedge
+            mesh%edge(ii)%index = ii 
+            read(11,*) mesh%edge(ii)%v1,mesh%edge(ii)%v2,mesh%edge(ii)%cell1,mesh%edge(ii)%cell2
+        end do 
+        exit
+    end if 
+end do 
+rewind(11)
+
+!read vertices 
+iostatus = 0 
+do while (iostatus == 0)
+    read(11,'(A)',iostat=iostatus) rtemp
+    if (rtemp(1:7) == 'nvertex') then 
+        read(rtemp(11:len_trim(rtemp)),*) mesh%nvertex
+        allocate(mesh%vertex(mesh%nvertex))
+        do ii=1,mesh%nvertex
+            mesh%vertex(ii)%index = ii 
+            read(11,*) mesh%vertex(ii)%coordinate(1:2)
+            mesh%vertex(ii)%coordinate(3) = 0.0d0 
+            mesh%vertex(ii)%flag = .false.
+            mesh%vertex(ii)%rdata = 0.0d0 
+        end do 
+        exit 
+    end if 
+end do 
+rewind(11)
+
+!read surface link data
+do while (iostatus == 0)
+    read(11,'(A)',iostat=iostatus) rtemp
+    if (rtemp(1:15) == 'nvertex_surface') then 
+        read(rtemp(19:len_trim(rtemp)),*) mesh%nvertex_surfint
+        do ii=1,mesh%nvertex_surfint
+            read(11,*) vidx,ef,ev1,ev2
+            allocate(mesh%vertex(vidx)%ivdata(2))
+            mesh%vertex(vidx)%rdata = ef
+            mesh%vertex(vidx)%ivdata(1) = ev1
+            mesh%vertex(vidx)%ivdata(2) = ev2
+            mesh%vertex(vidx)%flag = .true.
+        end do 
+        exit 
+    end if 
+end do 
+
+!close mesh file 
+close(11)
+
+!set vertex pointers
+do ii=1,mesh%nedge
+    mesh%edge(ii)%vertex1 => mesh%vertex(mesh%edge(ii)%v1)
+    mesh%edge(ii)%vertex2 => mesh%vertex(mesh%edge(ii)%v2)
+end do 
+return 
+end subroutine read_hex_cell_mesh_2d
 
 !hex mesh format export subroutine 2d =========================
 subroutine write_hex_mesh_2d(mesh,filename)

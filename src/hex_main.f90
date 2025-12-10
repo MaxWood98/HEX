@@ -1,7 +1,7 @@
 !hex mesh generator main program
 !max wood
-!version : 0.0.25
-!updated : 04-12-25
+!version : 0.0.26
+!updated : 10-12-25
 
 !TODO =====================
 ! add initial fv geometry normals calculation to set halfedge normals such that it can deal with nested geometry 
@@ -37,7 +37,7 @@ if (options%cdisplay) then
     write(*,'(A)')'+--------------------------------------------+'
     write(*,'(A)')'|                    hex                     |'
     write(*,'(A)')'|  2d/3d unstructured volume mesh generator  |'
-    write(*,'(A)')'|       Version 0.0.25 || 04/12/2025         |'
+    write(*,'(A)')'|       Version 0.0.26 || 10/12/2025         |'
     write(*,'(A)')'|                 Max Wood                   |'
     write(*,'(A)')'|           University of Bristol            |'
     write(*,'(A)')'|    Department of Aerospace Engineering     |'
@@ -87,9 +87,10 @@ if (options%mode == 'check') then
 elseif (options%mode == 'mesh') then 
     if (geometry%ndim == 2) then 
         mesh2d = hex2d_mesh(geometry,options)
-        ! call write_hex_mesh_2d(mesh2d,options%meshpath//options%meshname)
-
-
+        if (options%cdisplay) then 
+            write(*,'(A)') '--> exporting mesh'
+        end if 
+        call write_hex_cell_mesh_2d(mesh2d,options%meshpath//options%meshname)
     elseif (geometry%ndim == 3) then 
     
     end if 
@@ -99,7 +100,13 @@ elseif (options%mode == 'project') then
     if (options%cdisplay) then 
         write(*,'(A)') '--> importing mesh: '//trim(options%meshpath)//trim(options%meshname)
     end if 
-    call read_hex_mesh_2d(mesh2d,options%meshpath//options%meshname)
+    call read_hex_cell_mesh_2d(mesh2d,options%meshpath//options%meshname)
+    if (options%cdisplay) then
+        write(*,'(A,I0,A)') '    {cells: ',mesh2d%ncell,'}'
+        write(*,'(A,I0,A)') '    {edges: ',mesh2d%nedge,'}'
+        write(*,'(A,I0,A)') '    {vertices: ',mesh2d%nvertex,'}'
+        write(*,'(A,I0,A)') '    {surface intersection vertices: ',mesh2d%nvertex_surfint,'}'
+    end if 
     if (options%cdisplay) then 
         write(*,'(A)') '--> importing gradient: '//trim(options%gradientpath)//trim(options%gradientname)
     end if 
@@ -120,14 +127,13 @@ end if
 
 
 !testing write cell based mesh
-if (options%cdisplay) then 
-    write(*,'(A)') '--> exporting mesh'
-end if 
+! if (options%cdisplay) then 
+!     write(*,'(A)') '--> exporting mesh'
+! end if 
 
 !DEBUG-TESTING write mesh 
-call write_hex_mesh_2d(mesh2d,'grid')
-
-call write_hex_cell_mesh_2d(mesh2d,'grid_cell')
+! call write_hex_mesh_2d(mesh2d,'grid')
+! call write_hex_cell_mesh_2d(mesh2d,mesh2d,options%meshpath//options%meshname)
 
 
 

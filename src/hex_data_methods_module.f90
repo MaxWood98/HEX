@@ -67,7 +67,7 @@ end type hex_vertex
 !mesh edge type 
 type hex_edge
     logical :: external,flag
-    integer(in64) :: index,cell1,cell2,tag,idata 
+    integer(in64) :: index,v1,v2,cell1,cell2,tag,idata 
     integer(in64), dimension(:), allocatable :: ivdata
     real(dp) :: rdata
     real(dp) :: direction(3)

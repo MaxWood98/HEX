@@ -5,11 +5,11 @@
 console_display = yes
 
 #mesh path 
-meshpath = CFD_testing/grid
+meshpath = grid_cell
 
 #surface geometry filepath 
 # geompath = test_geometries/square.fv
-geompath = test_geometries/NACA_0012.fv
+# geompath = test_geometries/NACA_0012.fv
 # geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/wedge.fv
 # geompath = test_geometries/klunkerharder_0p100.fv
@@ -23,9 +23,10 @@ geompath = test_geometries/NACA_0012.fv
 # geompath = test_geometries/jamesfincham.fv
 # geompath = test_geometries/hube.fv
 # geompath = test_geometries/cavos_3x3.fv
+geompath = test_geometries/surface.fv
 
 #mesh the geometry internal or external
-mesh_in_out = internal
+mesh_in_out = external
 
 #mesh property options
 mesh_edgelength_min = 1e-10
@@ -36,7 +37,7 @@ mesh_farfield_r = 12.0
 #mesh structure options
 tree_type = triangle
 tree_mesh_relation = dual
-tree_nrefine = 12
+tree_nrefine = 10
 tree_nflood_coarse = 4
 tree_nflood_mid = 8
 tree_nflood_fine = 12
@@ -52,8 +53,7 @@ postprocess_remove_farfield_adjacent = yes
 postprocess_remove_only_surface_adjacent = yes
 
 #gradient projection options 
-gradientpath = CFD_testing/gradient.dat
-# gradientpath = gradient.dat
+gradientpath = gradient
 
 #refinement zoning:
 #  rzone point xmid ymid zmid radius level
