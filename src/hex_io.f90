@@ -695,4 +695,25 @@ close(11)
 return 
 end subroutine write_gradient_2d
 
+
+!export geometry check results subroutine ===========================
+subroutine write_geometry_check(is_selfintersecting,options)
+implicit none 
+
+!variables - inout
+logical :: is_selfintersecting
+type(hex_options) :: options 
+
+!write
+open(11,file=options%meshpath//'geometry_status') 
+    if (is_selfintersecting) then 
+        write(11,'(A,I0)') 'self intersection = ',1
+    else
+        write(11,'(A,I0)') 'self intersection = ',0
+    end if 
+close(11)
+return 
+end subroutine write_geometry_check
+
+
 end module hex_io

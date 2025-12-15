@@ -1,7 +1,7 @@
 !hex data and methods module 
 !max wood
-!version : 0.0.7
-!updated : 25-03-25
+!version : 0.0.8
+!updated : 15-12-25
 
 !module 
 module hex_data_methods
@@ -83,7 +83,7 @@ type hex_cell
     logical :: flag
     integer(in64) :: index,nedge,tag
     integer(in64), dimension(:), allocatable :: edges 
-    real(dp) :: volume 
+    real(dp) :: volume,volume_ref
     real(dp) :: midpoint(3)
     contains 
         procedure :: get_midpoint => get_midpoint_cell
@@ -458,6 +458,7 @@ class(hex_mesh), target :: self
 integer(in64) :: ii  
 integer(in64) :: ncellc,cins 
 integer(in64), dimension(:), allocatable :: cell_map
+type(hex_cell), dimension(:), allocatable :: cell_temp
 
 !find current maximum cell count
 ncellc = 0 
@@ -472,7 +473,7 @@ end do
 
 !map cells
 cins = 0 
-allocate(cell_map(ncellc))
+allocate(cell_map(max(ncellc,self%ncell)))
 cell_map(:) = 0 
 do ii=1,self%nedge
     if (self%edge(ii)%cell1 .GT. 0) then 
@@ -488,6 +489,8 @@ do ii=1,self%nedge
         end if 
     end if 
 end do 
+
+!map edge-cell links
 do ii=1,self%nedge
     if (self%edge(ii)%cell1 .GT. 0) then 
         self%edge(ii)%cell1 = cell_map(self%edge(ii)%cell1)
@@ -499,34 +502,30 @@ end do
 
 !set the number of mesh cells 
 self%ncell = cins
-return 
-end subroutine index_cells
 
-
-!get cells =========================
-subroutine get_cells(self)
-implicit none 
-
-!variables - import
-class(hex_mesh), target :: self
-
-!variables - local 
-integer(in64) :: ii  
-
-!index cells 
-call self%index_cells()
-
-!allocate cells 
+!reallocate cells
 if (.NOT. allocated(self%cell)) then 
     allocate(self%cell(self%ncell))
     do ii=1,self%ncell
         self%cell(ii)%flag = .false.
     end do 
 elseif (size(self%cell,dim=1) .NE. self%ncell) then 
+    allocate(cell_temp(size(self%cell,dim=1)))
+    cell_temp = self%cell 
     deallocate(self%cell)
     allocate(self%cell(self%ncell))
     do ii=1,self%ncell
         self%cell(ii)%flag = .false.
+        self%cell(ii)%volume_ref = 0.0d0 
+    end do 
+    do ii=1,size(cell_temp,dim=1)
+        if (cell_map(ii) == 0) then 
+            !do nothing 
+        elseif (cell_map(ii) .GT. self%ncell) then 
+            !do nothing 
+        else
+            self%cell(cell_map(ii))%volume_ref = cell_temp(ii)%volume_ref
+        end if 
     end do 
 end if 
 
@@ -539,6 +538,19 @@ do ii=1,self%nedge
         self%cell(self%edge(ii)%cell2)%index = self%edge(ii)%cell2
     end if 
 end do 
+return 
+end subroutine index_cells
+
+
+!get cells =========================
+subroutine get_cells(self)
+implicit none 
+
+!variables - import
+class(hex_mesh), target :: self
+
+!index cells 
+call self%index_cells()
 
 !get cell edges 
 call self%get_cell_edges()

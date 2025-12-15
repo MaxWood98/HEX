@@ -1,7 +1,7 @@
 !hex mesh generator 2d main program
 !max wood
-!version : 0.1.0
-!updated : 04-12-25
+!version : 0.1.1
+!updated : 15-12-25
 
 !module 
 module hex2d
@@ -33,6 +33,16 @@ type(tritree), target :: tri_tree
 
 !set mesh valididy flag
 mesh%isvalid = .true.
+
+!initialise properties
+mesh_full%ncell = 0
+mesh_full%nedge = 0
+mesh_full%nvertex = 0
+mesh_full%nvertex_surfint = 0
+mesh%ncell = 0
+mesh%nedge = 0
+mesh%nvertex = 0
+mesh%nvertex_surfint = 0
 
 !extend the geometry arrays to accomodate new entries from splitting edges 
 call geometry%extend(options%ncell_max)
@@ -327,6 +337,10 @@ type(edge), dimension(:), allocatable :: edge_check
 
 !set zero edge length tollerance 
 zelen_tol = options%edgelength_min
+
+!get the full mesh cell volumes 
+call mesh_full%get_cells()
+call mesh_full%get_cell_areas()
 
 !set mesh vertex tags to zero (a non-zero tag indicates the vertex is shared with one on the clipped geometry)
 do ii=1,size(mesh_full%vertex,dim=1)
@@ -783,6 +797,13 @@ call collapse_degenerate_edges(mesh,ndegenrate)
 if (options%cdisplay) then 
     write(*,'(A,I0,A)') '    {eliminated ',ndegenrate,' degenerate edges}'
 end if
+
+!initialise the cell reference volumes 
+mesh%ncell = mesh_full%ncell 
+allocate(mesh%cell(mesh%ncell))
+do ii=1,mesh%ncell
+    mesh%cell(ii)%volume_ref = mesh_full%cell(ii)%volume 
+end do 
 
 !set the cell association of each geometry surface edge 
 if (options%geom_cell_link_method == 'dot_dir') then 
@@ -1450,7 +1471,6 @@ do ii=1,geometry%nedge
     normal(1) = dy 
     normal(2) = -dx 
     if (dot_product(normal,geometry%edge(ii)%normal) > 0.0) then 
-
         geometry%edge(ii)%flag = .true.
     end if 
 end do 
@@ -1580,5 +1600,100 @@ options%options_from_commandline = .false.
 options%geom_from_commandline = .false.
 return 
 end subroutine set_default_options
+
+
+!check geometry for self intersections function ===========================
+function is_self_intersecting(geometry,options) result(is_selfintersecting)
+implicit none 
+
+!variables - inout
+logical :: is_selfintersecting
+type(halfedge) :: geometry
+type(hex_options) :: options 
+
+!variables - local 
+integer(in64) :: ii,jj,nn
+integer(in64) :: ntgtnode,nedgecheck
+real(dp) :: gpad,epad,xmin,xmax,ymin,ymax
+real(dp) :: v1(2),v2(2),vt1(2),vt2(2)
+type(gkdtree), target :: kdtree
+type(edge) :: edge_check(geometry%nedge)
+type(node), dimension(:), allocatable :: tgt_nodes
+
+!set the global padding factor
+gpad = 1e-8_dp
+
+!initialise intersection state
+is_selfintersecting = .false.
+
+!build kdtree on the geometry
+call kdtree%build_tree(geometry,20_in64,4_in64,options%cdisplay)
+allocate(tgt_nodes(kdtree%nnode))
+
+!flag the geometry external halfedges 
+call flag_external_halfedges(geometry)
+
+!check for self intersections with all edges apart from each edges next and previous 
+do ii=1,geometry%nedge
+
+    !skip internal edges
+    if (.NOT.geometry%edge(ii)%flag) then 
+        cycle
+    end if 
+
+    !edge ends
+    v1(:) = geometry%edge(ii)%origin%coordinate(1:2)
+    v2(:) = geometry%edge(ii)%opposite%origin%coordinate(1:2)
+
+    !Set padding size
+    epad = norm2(v2 - v1)
+
+    !intersection bounding box
+    xmin = min(v1(1),v2(1)) - epad*gpad
+    xmax = max(v1(1),v2(1)) + epad*gpad
+    ymin = min(v1(2),v2(2)) - epad*gpad
+    ymax = max(v1(2),v2(2)) + epad*gpad
+    call kdtree%nodes_overlapping_region_2d(xmin,xmax,ymin,ymax,ntgtnode,tgt_nodes)
+
+    !build a list of geometry edges to check 
+    nedgecheck = 0 
+    do nn=1,ntgtnode
+        do jj=1,tgt_nodes(nn)%nitem
+            if (.NOT.tgt_nodes(nn)%edge(jj)%edge%flag) then 
+                cycle
+            end if 
+            if (tgt_nodes(nn)%edge(jj)%edge%index == geometry%edge(ii)%next%index) then 
+                cycle
+            elseif (tgt_nodes(nn)%edge(jj)%edge%index == geometry%edge(ii)%previous%index) then 
+                cycle
+            elseif (tgt_nodes(nn)%edge(jj)%edge%index == geometry%edge(ii)%index) then 
+                cycle
+            end if 
+            nedgecheck = nedgecheck + 1
+            edge_check(nedgecheck) = tgt_nodes(nn)%edge(jj)%edge
+        end do 
+    end do 
+
+    !check for intersections in the selected edges 
+    do jj=1,nedgecheck
+
+        !get the vertices on this edge 
+        vt1(:) = edge_check(jj)%origin%coordinate(1:2)
+        vt2(:) = edge_check(jj)%opposite%origin%coordinate(1:2)
+
+        !check 
+        if (line_line_intersect_internal_bool(v1,v2,vt1,vt2)) then 
+            is_selfintersecting = .true.
+            exit 
+        end if 
+    end do 
+
+    !exit if self intersection found 
+    if (is_selfintersecting) then 
+        exit 
+    end if 
+end do 
+return 
+end function is_self_intersecting
 
 end module hex2d

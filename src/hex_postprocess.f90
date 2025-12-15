@@ -1,7 +1,7 @@
 !hex postprocess module
 !max wood
-!version : 0.0.7
-!updated : 04-12-25
+!version : 0.0.8
+!updated : 15-12-25
 
 !module 
 module hex_postprocess
@@ -944,7 +944,7 @@ if (method == 'small') then !check for and flag small cells
     ntagged = 0 
     do ii=1,mesh%ncell
         mesh%cell(ii)%flag = .false.
-        if (mesh%cell(ii)%volume .LE. options%cellvol_min) then 
+        if (mesh%cell(ii)%volume .LE. options%cellvol_min*mesh%cell(ii)%volume_ref) then 
             mesh%cell(ii)%flag = .true.
             ntagged = ntagged + 1
         end if  
@@ -1221,6 +1221,11 @@ type(hex_mesh), target :: mesh
 logical :: bisected
 integer(in64) :: ii,ee,ff,aa,ncellN
 integer(in64) :: eadj,nupdate
+integer(in64) :: bisect_map(mesh%ncell,2)
+type(hex_cell), dimension(:), allocatable :: cell_temp
+
+!initialise the bisection map 
+bisect_map(:,:) = 0
 
 !get v2e
 call mesh%index_edges() 
@@ -1315,6 +1320,10 @@ do ii=1,mesh%ncell
         !increment cell count 
         ncellN = ncellN + 1
 
+        !set this entry in the bisection map
+        bisect_map(nbisected,1) = ncellN
+        bisect_map(nbisected,2) = ii
+
         !update cell adjacency on all flag = .false. edges in this cell
         do ee=1,mesh%cell(ii)%nedge
             if (.NOT. mesh%edge(mesh%cell(ii)%edges(ee))%flag) then 
@@ -1333,6 +1342,16 @@ do ii=1,mesh%ncell
         mesh%edge(mesh%cell(ii)%edges(ee))%tag = 1
         mesh%edge(mesh%cell(ii)%edges(ee))%flag = .false.
     end do 
+end do 
+
+!set the reference volumes on bisected cells by extending the cell list
+allocate(cell_temp(mesh%ncell))
+cell_temp = mesh%cell
+deallocate(mesh%cell)
+allocate(mesh%cell(ncellN))
+mesh%cell(1:mesh%ncell) = cell_temp
+do ii=1,nbisected
+    mesh%cell(bisect_map(ii,1))%volume_ref = mesh%cell(bisect_map(ii,2))%volume_ref
 end do 
 
 !update cell indexing 

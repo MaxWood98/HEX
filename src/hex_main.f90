@@ -1,7 +1,7 @@
 !hex mesh generator main program
 !max wood
-!version : 0.0.26
-!updated : 10-12-25
+!version : 0.0.27
+!updated : 15-12-25
 
 !TODO =====================
 ! add initial fv geometry normals calculation to set halfedge normals such that it can deal with nested geometry 
@@ -16,6 +16,7 @@ use hex_utilities
 implicit none 
 
 !variables 
+logical :: is_selfintersecting
 type(halfedge) :: geometry
 type(facevertex) :: geometry_fv
 type(hex_options) :: options 
@@ -37,7 +38,7 @@ if (options%cdisplay) then
     write(*,'(A)')'+--------------------------------------------+'
     write(*,'(A)')'|                    hex                     |'
     write(*,'(A)')'|  2d/3d unstructured volume mesh generator  |'
-    write(*,'(A)')'|       Version 0.0.26 || 10/12/2025         |'
+    write(*,'(A)')'|       Version 0.0.27 || 15/12/2025         |'
     write(*,'(A)')'|                 Max Wood                   |'
     write(*,'(A)')'|           University of Bristol            |'
     write(*,'(A)')'|    Department of Aerospace Engineering     |'
@@ -83,7 +84,18 @@ end if
 
 !process
 if (options%mode == 'check') then 
-    !do nothing for now 
+    if (options%cdisplay) then
+        write(*,'(A)') '--> checking for self intersections'
+    end if
+    if (geometry%ndim == 2) then 
+        is_selfintersecting = is_self_intersecting(geometry,options)
+        if (options%cdisplay) then
+            write(*,'(A,L,A)') '    {is self intersecting: ',is_selfintersecting,'}'
+        end if
+    elseif (geometry%ndim == 3) then 
+    
+    end if 
+    call write_geometry_check(is_selfintersecting,options)
 elseif (options%mode == 'mesh') then 
     if (geometry%ndim == 2) then 
         mesh2d = hex2d_mesh(geometry,options)

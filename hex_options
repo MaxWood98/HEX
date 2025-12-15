@@ -9,7 +9,7 @@ meshpath = grid_cell
 
 #surface geometry filepath 
 # geompath = test_geometries/square.fv
-# geompath = test_geometries/NACA_0012.fv
+geompath = test_geometries/NACA_0012.fv
 # geompath = test_geometries/RAE_2822.fv
 # geompath = test_geometries/wedge.fv
 # geompath = test_geometries/klunkerharder_0p100.fv
@@ -23,14 +23,14 @@ meshpath = grid_cell
 # geompath = test_geometries/jamesfincham.fv
 # geompath = test_geometries/hube.fv
 # geompath = test_geometries/cavos_3x3.fv
-geompath = test_geometries/surface.fv
+# geompath = test_geometries/surface.fv
 
 #mesh the geometry internal or external
-mesh_in_out = external
+mesh_in_out = internal
 
 #mesh property options
 mesh_edgelength_min = 1e-10
-mesh_cellvol_min = 1e-7
+mesh_cellvol_min = 0.05
 mesh_ncell_max = 1000000
 mesh_farfield_r = 12.0
 

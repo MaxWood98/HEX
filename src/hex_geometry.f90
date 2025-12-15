@@ -422,5 +422,4 @@ at = 0.25d0*sqrt(4.0d0*a*a*b*b - (a*a + b*b - c*c)**2)
 return 
 end function triangle_area_2d
 
-
 end module hex_geometry
