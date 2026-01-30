@@ -10,10 +10,10 @@ addpath(genpath('matlab_utilities'));
 % system('hex');
 
 %load geometry
-filename = 'test_geometries/surface.fv';
+% filename = 'test_geometries/surface.fv';
 % filename = 'test_geometries/klunkerharder_0p100.fv';
 % filename = 'test_geometries/wedge.fv';
-% filename = 'test_geometries/NACA_0012.fv';
+filename = 'test_geometries/NACA_0012.fv';
 % filename = 'test_geometries/RAE_2822.fv';
 % filename = 'test_geometries\cavos_3x3.fv';
 [geom] = import_fv_mesh(filename);
