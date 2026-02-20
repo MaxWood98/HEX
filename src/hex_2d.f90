@@ -31,7 +31,7 @@ type(hex_mesh), target :: mesh_full
 type(gkdtree), target :: kdtree
 type(tritree), target :: tri_tree 
 
-!set mesh valididy flag
+!set mesh validity flag
 mesh%isvalid = .true.
 
 !initialise properties
