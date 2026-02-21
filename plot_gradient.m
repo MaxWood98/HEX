@@ -3,7 +3,7 @@ clearvars
 addpath(genpath('matlab_utilities'));
 
 %load geometry
-[geom] = import_fv_mesh('test_geometries/shopt_0p1.fv');
+[geom] = import_fv_mesh('test_geometries/NACA_0012.fv');
 [geom] = build_full_faces(geom);
 
 %load mesh 

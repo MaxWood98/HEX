@@ -426,14 +426,14 @@ end do
 !write vertices
 write(11,'(A,I0)') 'nvertex = ',mesh%nvertex 
 do ii=1,mesh%nvertex 
-    write(11,'(E17.10,A,E17.10)') mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
+    write(11,'(E23.16,A,E23.16)') mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
 end do 
 
 !write surface link data 
 write(11,'(A,I0)') 'nvertex_surface = ',mesh%nvertex_surfint 
 do ii=1,mesh%nvertex 
     if (mesh%vertex(ii)%flag) then 
-        write(11,'(I0,A,E17.10,A,I0,A,I0)') ii,' ',mesh%vertex(ii)%rdata,' ',mesh%vertex(ii)%ivdata(1),' ',mesh%vertex(ii)%ivdata(2) !mesh vertex index | fraction | geometry vertex 1 | geometry vertex 2
+        write(11,'(I0,A,E23.16,A,I0,A,I0)') ii,' ',mesh%vertex(ii)%rdata,' ',mesh%vertex(ii)%ivdata(1),' ',mesh%vertex(ii)%ivdata(2) !mesh vertex index | fraction | geometry vertex 1 | geometry vertex 2
     end if 
 end do
 
@@ -571,12 +571,12 @@ do ii=1,mesh%nedge !edges
                                     mesh%edge(ii)%cell2,' ',mesh%edge(ii)%cell1 
 end do
 do ii=1,mesh%nvertex !vertices
-    write(11,'(I0,A,E17.10,A,E17.10)') ii,' ',mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
+    write(11,'(I0,A,E23.16,A,E23.16)') ii,' ',mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2)
 end do
 write(11,'(I0)') mesh%nvertex_surfint
 do ii=1,mesh%nvertex !surface link data 
     if (mesh%vertex(ii)%flag) then 
-        write(11,'(I0,A,E17.10,A,I0,A,I0)') ii,' ',mesh%vertex(ii)%rdata,' ',&
+        write(11,'(I0,A,E23.16,A,I0,A,I0)') ii,' ',mesh%vertex(ii)%rdata,' ',&
                                             mesh%vertex(ii)%ivdata(1),' ',mesh%vertex(ii)%ivdata(2) !mesh vertex index | fraction | geometry vertex 1 | geometry vertex 2
     end if 
 end do
@@ -689,7 +689,7 @@ integer(in64) :: ii
 !write
 open(11,file=filename)
 do ii=1,size(surface_gradient,dim=1)
-    write(11,'(E17.10,A,E17.10)') surface_gradient(ii,1),' ',surface_gradient(ii,2)
+    write(11,'(E23.16,A,E23.16)') surface_gradient(ii,1),' ',surface_gradient(ii,2)
 end do 
 close(11)
 return 

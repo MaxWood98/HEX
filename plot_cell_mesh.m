@@ -117,7 +117,7 @@ hold on
 %plot mesh 
 patch('Faces',cells_full,'Vertices',mesh.vertices,'edgecolor','k','facecolor','none')
 
-plot(mesh.vertices(:,1),mesh.vertices(:,2),'r.','markersize',10)
+% plot(mesh.vertices(:,1),mesh.vertices(:,2),'r.','markersize',10)
 
 % patch('Faces',cells_full(4249,:),'Vertices',mesh.vertices,'edgecolor','k','facecolor','r')
 

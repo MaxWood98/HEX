@@ -46,7 +46,7 @@ tree_nflood_fine = 12
 postprocess_allow_postprocess = yes
 postprocess_nsmooth_interlayer = 1
 postprocess_nsmooth_farfield = 2
-postprocess_simplify_surfaces = yes
+postprocess_simplify_surfaces = no
 
 #mesh trimming options 
 postprocess_remove_farfield_adjacent = yes
