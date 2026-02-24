@@ -144,7 +144,7 @@ end if
 ! end if 
 
 !DEBUG-TESTING write mesh 
-call write_hex_mesh_2d(mesh2d,'grid')
+! call write_hex_mesh_2d(mesh2d,'grid')
 ! call write_hex_cell_mesh_2d(mesh2d,mesh2d,options%meshpath//options%meshname)
 
 

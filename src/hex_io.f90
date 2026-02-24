@@ -31,11 +31,6 @@ nargs = command_argument_count()
 if (nargs == 0) then 
     options%mode = 'mesh'
     write(*,'(A)') '** defaulting to mesh generation mode'
-    ! write(*,'(A)') '** at least one argument [mode] must be supplied,& 
-    ! & optionaly followed by:'
-    ! print *, '-o [options file with path]'
-    ! print *, '-g [geometry file with path]'
-    ! stop
 else
 
     !get first argument 
