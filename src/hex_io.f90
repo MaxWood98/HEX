@@ -124,6 +124,9 @@ open(11,file=filename)
 !set console display
 call set_log_opt(options%cdisplay,11,'console_display')
 
+!export vtu
+call set_log_opt(options%export_vtu,11,'export_mesh_vtu')
+
 !set geometry filepaths
 if (.NOT. options%geom_from_commandline) then 
     str_temp = scan_opt_str(11,'geompath')
@@ -710,5 +713,136 @@ close(11)
 return 
 end subroutine write_geometry_check
 
+
+!export mesh vtu 2d ===========================
+subroutine write_mesh_vtu_2d(mesh,filename)
+implicit none 
+
+!variables - inout
+character(*) :: filename
+type(hex_mesh), target :: mesh
+
+
+
+!variables - local 
+integer(in64) :: ii,jj
+integer(in64) :: offset,etgt
+integer(in64) :: loop(mesh%nedge)
+
+! !get mesh cells 
+! call mesh%index_vertices()
+! call mesh%index_edges()
+! call mesh%index_cells()
+! call mesh%get_cell_edges()
+
+! !open file
+! invalid_cell = .false.
+! open(11,file=filename) !mesh file
+
+! !write cells
+! write(11,'(A,I0)') 'ncell = ',mesh%ncell 
+! do ii=1,mesh%ncell
+
+!     !get ordered loop of edges for this cell 
+!     loop(1:mesh%cell(ii)%nedge) = mesh%cell(ii)%get_edge_loop(mesh,.false.)
+
+
+
+! end do 
+
+
+
+!open vtu file
+open(11,file=filename) 
+
+!write headers
+write(11,'(A)') '<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian">'
+write(11,'(A)') ' <UnstructuredGrid>'
+
+!write mesh data header
+write(11,'(A,I0,A,I0,A)') '  <Piece NumberOfPoints="',mesh%nvertex,'" NumberOfCells="',mesh%ncell,'">'
+
+!write vertices
+write(11,'(A)') '   <Points>'
+write(11,'(A)') '    <DataArray type="Float64" NumberOfComponents="3" Format="ascii">'
+do ii=1,mesh%nvertex
+    write(11,'(A,E23.16,A,E23.16,A,E23.16)') '     ',mesh%vertex(ii)%coordinate(1),' ',mesh%vertex(ii)%coordinate(2),' ',0.0d0
+end do 
+write(11,'(A)') '    </DataArray>'
+write(11,'(A)') '   </Points>'
+
+!write cells header
+write(11,'(A)') '   <Cells>'
+
+!write cells
+write(11,'(A)') '    <DataArray type="Int32" Name="connectivity" Format="ascii">'
+do ii=1,mesh%ncell
+
+    !get ordered loop of edges for this cell 
+    loop(1:mesh%cell(ii)%nedge) = mesh%cell(ii)%get_edge_loop(mesh,.false.)
+
+    !write ordered vertex loop for this cell 
+    do jj=1,mesh%cell(ii)%nedge 
+        etgt = loop(jj)
+        if (etgt == 0) then 
+            write(*,'(A,I0,A)') '    ** zero index in vertex loop of cell ',ii,', this cell is likely bisected'
+            exit
+        end if 
+        if (mesh%edge(etgt)%cell1 == ii) then 
+            write(11,'(I0)') mesh%edge(etgt)%vertex1%index - 1
+        else
+            write(11,'(I0)') mesh%edge(etgt)%vertex2%index - 1
+        end if 
+    end do 
+end do 
+write(11,'(A)') '    </DataArray>'
+
+!write offsets
+write(11,'(A)') '    <DataArray type="Int32" Name="offsets" Format="ascii">'
+offset = 0
+do ii=1,mesh%ncell
+    offset = offset + mesh%cell(ii)%nedge
+    write(11,'(A,I0)') '     ',offset
+end do 
+write(11,'(A)') '    </DataArray>'
+
+!write cell types 
+write(11,'(A)') '    <DataArray type="UInt8" Name="types" Format="ascii">'
+do ii=1,mesh%ncell
+    if (mesh%cell(ii)%nedge == 3) then 
+        write(11,'(A)') '     5'
+    elseif (mesh%cell(ii)%nedge == 4) then 
+        write(11,'(A)') '     9'
+    else
+        write(11,'(A)') '     7'
+    end if 
+end do 
+write(11,'(A)') '    </DataArray>'
+
+!write cells footer
+write(11,'(A)') '   </Cells>'
+
+!write cell data header
+write(11,'(A)') '   <CellData>'
+
+!mach
+write(11,'(A)') '    <DataArray type="Float64" Name="Volume" format="ascii" NumberOfComponents="1">'
+do ii=1,mesh%ncell
+    write(11,'(A,E23.16)')'     ',mesh%cell(ii)%volume
+end do 
+write(11,'(A)') '    </DataArray>'
+
+!write cell data footer
+write(11,'(A)') '   </CellData>'
+
+!write footers
+write(11,'(A)') '  </Piece>'
+write(11,'(A)') ' </UnstructuredGrid>'
+write(11,'(A)') '</VTKFile>'
+
+!close vtu file 
+close(11)
+return 
+end subroutine write_mesh_vtu_2d
 
 end module hex_io

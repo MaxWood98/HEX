@@ -4,6 +4,9 @@
 #console display output
 console_display = yes
 
+#export mesh vtu
+export_mesh_vtu = yes
+
 #mesh path 
 meshpath = grid_cell
 
@@ -49,8 +52,8 @@ postprocess_nsmooth_farfield = 2
 postprocess_simplify_surfaces = no
 
 #mesh trimming options 
-postprocess_remove_farfield_adjacent = yes
-postprocess_remove_only_surface_adjacent = yes
+# **remove: postprocess_remove_farfield_adjacent = yes
+# **remove: postprocess_remove_only_surface_adjacent = yes
 
 #gradient projection options 
 gradientpath = gradient

@@ -1,7 +1,7 @@
 !hex mesh generator main program
 !max wood
-!version : 0.0.27
-!updated : 15-12-25
+!version : 0.0.4
+!updated : 24-02-26
 
 !TODO =====================
 ! add initial fv geometry normals calculation to set halfedge normals such that it can deal with nested geometry 
@@ -38,7 +38,7 @@ if (options%cdisplay) then
     write(*,'(A)')'+--------------------------------------------+'
     write(*,'(A)')'|                    hex                     |'
     write(*,'(A)')'|  2d/3d unstructured volume mesh generator  |'
-    write(*,'(A)')'|       Version 0.0.27 || 15/12/2025         |'
+    write(*,'(A)')'|       Version 0.0.4 || 25/02/2026         |'
     write(*,'(A)')'|                 Max Wood                   |'
     write(*,'(A)')'|           University of Bristol            |'
     write(*,'(A)')'|    Department of Aerospace Engineering     |'
@@ -103,6 +103,12 @@ elseif (options%mode == 'mesh') then
             write(*,'(A)') '--> exporting mesh'
         end if 
         call write_hex_cell_mesh_2d(mesh2d,options%meshpath//options%meshname)
+        if (options%export_vtu) then 
+            if (options%cdisplay) then 
+                write(*,'(A)') '--> exporting mesh vtu'
+            end if 
+            call write_mesh_vtu_2d(mesh2d,options%meshpath//options%meshname//'.vtu')
+        end if 
     elseif (geometry%ndim == 3) then 
     
     end if 

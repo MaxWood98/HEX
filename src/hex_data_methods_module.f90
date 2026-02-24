@@ -1,7 +1,7 @@
 !hex data and methods module 
 !max wood
-!version : 0.0.8
-!updated : 15-12-25
+!version : 0.0.9
+!updated : 24-02-26
 
 !module 
 module hex_data_methods
@@ -17,7 +17,7 @@ use ISO_FORTRAN_ENV, only: dp=>real64
 
 !options type
 type hex_options
-    logical :: cdisplay,allow_postprocess,geom_from_commandline,options_from_commandline,simplify_surfaces
+    logical :: cdisplay,allow_postprocess,geom_from_commandline,options_from_commandline,simplify_surfaces,export_vtu
     character(len=:), allocatable :: geomname,geompath,optionsname,optionspath,gradientpath,gradientname
     character(len=:), allocatable :: meshpath,meshname,gradient_method
     character(len=:), allocatable :: mesh_in_out,mode,mesh_treetype,tree_mesh_relation,geom_cell_link_method

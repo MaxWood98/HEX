@@ -1,7 +1,7 @@
 !hex mesh generator 2d main program
 !max wood
-!version : 0.1.1
-!updated : 15-12-25
+!version : 0.1.2
+!updated : 24-02-26
 
 !module 
 module hex2d
@@ -1551,6 +1551,9 @@ type(hex_options) :: options
 
 !set default console display to true 
 options%cdisplay = .true.
+
+!set default vtu export
+options%export_vtu = .false.
 
 !set the default mesh path 
 options%meshpath = ''
